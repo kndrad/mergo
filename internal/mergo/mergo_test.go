@@ -92,7 +92,10 @@ func Test_ModulePkgFiles(t *testing.T) {
 	for i, tmpFilename := range tmpFilenames[:tmpPkgFilesTotal] {
 		if file, err := os.OpenFile(tmpFilename, os.O_RDONLY, 0o666); err == nil {
 			t.Logf("Test_modulePkgFiles closing file: %s", tmpFilename)
-			file.Close()
+			if err := file.Close(); err != nil {
+				t.FailNow()
+				t.Logf("Test_modulePkgFiles err: %v", err)
+			}
 		}
 		tmpPkgFilename := filepath.Join(tmpPkgDirPath, filepath.Base(tmpFilename))
 		if err := os.Rename(tmpFilename, tmpPkgFilename); err != nil {
@@ -172,8 +175,14 @@ func Test_IsModule(t *testing.T) {
 	}
 
 	t.Cleanup(func() {
-		os.RemoveAll(tmpDir)
-		os.Remove(tmpModFile.Name())
+		if err := os.RemoveAll(tmpDir); err != nil {
+			t.Fail()
+			t.Logf("Test_IsModule err: %v", err)
+		}
+		if err := os.Remove(tmpModFile.Name()); err != nil {
+			t.Fail()
+			t.Logf("Test_IsModule err: %v", err)
+		}
 	})
 }
 
