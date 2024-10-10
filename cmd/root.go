@@ -47,7 +47,7 @@ It processes all non-test Go files in the specified input directory, combining t
 The tool preserves package structure, merges import statements, and maintains all declarations and functions.
 
 Usage:
-  mergo -p /path/to/input/directory -o /path/to/output/directory
+  mergo -p /path/to/gomodule/directory -o /path/to/output/directory
 
 This will process all Go packages in the input directory and create merged files in the output directory.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
@@ -59,12 +59,6 @@ This will process all Go packages in the input directory and create merged files
 
 			return fmt.Errorf("mergoCmd: %w", err)
 		}
-
-		// if err := os.MkdirAll(outDir, 0o600); err != nil {
-		// 	logger.Error("mergoCmd:", "err", err)
-
-		// 	return fmt.Errorf("mergoCmd: %w", err)
-		// }
 
 		if err := mergo.Module(modPath, outPath); err != nil {
 			logger.Error("mergoCmd:", "err", err)
