@@ -92,9 +92,30 @@ func ModulePkgFiles(path string) (map[string]*ast.File, error) {
 	return files, nil
 }
 
-func IsModule(path string) bool {
-	path = filepath.Clean(path)
-	base := filepath.Base(path)
+var ErrInvalidModule = errors.New("invalid Go Module")
 
-	return strings.HasPrefix(base, "go.mod")
+func IsModule(path string) (bool, error) {
+	if !checkDir(path) {
+		return false, ErrInvalidModule
+	}
+	name := filepath.Join(filepath.Clean(path), "go.mod")
+	modFile, err := os.OpenFile(name, os.O_RDONLY, 0o666)
+	if err != nil && errors.Is(err, os.ErrNotExist) {
+		return false, fmt.Errorf("isModule: %w", err)
+	}
+	defer modFile.Close()
+
+	return true, nil
+}
+
+func checkDir(dir string) bool {
+	info, err := os.Stat(filepath.Dir(dir))
+	if err != nil && errors.Is(err, os.ErrNotExist) {
+		return false
+	}
+	if !info.IsDir() {
+		return false
+	}
+
+	return true
 }

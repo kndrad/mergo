@@ -51,25 +51,25 @@ Usage:
 
 This will process all Go packages in the input directory and create merged files in the output directory.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		in, err := filepath.Abs(filepath.Clean(modPath))
-		logger.Info("mergo:", "modPath", in)
-		if err != nil {
-			logger.Error("rootCmd:", "err", err)
+		modPath = filepath.Clean(modPath)
+		logger.Info("mergo:", "modPath", modPath)
 
-			return fmt.Errorf("rootCmd: %w", err)
+		if ok, err := mergo.IsModule(modPath); !ok || err != nil {
+			logger.Error("mergoCmd: not a Go module", "modPath", modPath)
+
+			return fmt.Errorf("mergoCmd: %w", err)
 		}
 
-		outDir := filepath.Dir(outPath)
-		if err := os.MkdirAll(outDir, 0o600); err != nil {
-			logger.Error("rootCmd:", "err", err)
+		// if err := os.MkdirAll(outDir, 0o600); err != nil {
+		// 	logger.Error("mergoCmd:", "err", err)
 
-			return fmt.Errorf("rootCmd: %w", err)
-		}
+		// 	return fmt.Errorf("mergoCmd: %w", err)
+		// }
 
-		if err := mergo.Module(in, outPath); err != nil {
-			logger.Error("rootCmd:", "err", err)
+		if err := mergo.Module(modPath, outPath); err != nil {
+			logger.Error("mergoCmd:", "err", err)
 
-			return fmt.Errorf("rootCmd: %w", err)
+			return fmt.Errorf("mergoCmd: %w", err)
 		}
 		fmt.Println("Merging done")
 

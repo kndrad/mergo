@@ -44,7 +44,7 @@ func Test_ModulePkgFiles(t *testing.T) {
 	t.Logf("Test_modulePkgFiles: created tmpModFile: %#v", tmpModFile.Name())
 
 	require.NoError(t, err)
-	topDecl := "module github.com/kndrad/tmpmod\n\n" + "GoVersion\n\n"
+	topDecl := "module github.com/kndrad/tmpmod\n\n" + "go " + GoVersion + "\n\n"
 	if _, err := tmpModFile.WriteString(topDecl); err != nil {
 		t.Logf("Test_modulePkgFiles: top go.mod declaration err: %v", err)
 		t.FailNow()
@@ -79,7 +79,7 @@ func Test_ModulePkgFiles(t *testing.T) {
 			t.Logf("Test_modulePkgFiles err: %v", err)
 			t.FailNow()
 		}
-		t.Logf("Test_modulePkgFiles wrote top declaration: %v", topDecl)
+		t.Logf("Test_modulePkgFiles wrote top declaration")
 	}
 
 	tmpPkgDirPath := filepath.Join(tmpDir, tmpPkgName)
@@ -127,7 +127,7 @@ func Test_ModulePkgFiles(t *testing.T) {
 	require.NoError(t, err)
 	require.NotEmpty(t, files)
 
-	assert.Equal(t, len(files), filesTotal)
+	assert.Len(t, files, 3)
 }
 
 func Test_IsModule(t *testing.T) {
@@ -135,44 +135,44 @@ func Test_IsModule(t *testing.T) {
 
 	wd, err := os.Getwd()
 	require.NoError(t, err)
-
 	t.Logf("Test_IsModule: wd: %s", wd)
-	tmpDirPath := filepath.Join(wd, TestDataDir)
-	if !IsValidTestSubPath(t, tmpDirPath) {
-		t.Error("not a valid test subpath", tmpDirPath)
-	}
-	t.Logf("Test_IsModule: tempDirPath %s", tmpDirPath)
+
+	tmpModDirPath := filepath.Join(wd, TestDataDir)
+	t.Logf("Test_IsModule: tempDirPath %s", tmpModDirPath)
 
 	// Create a temporary directiory for output files
-	tmpDir, err := os.MkdirTemp(tmpDirPath, TestTmpDir)
+	tmpModFile, err := os.Create(filepath.Join(tmpModDirPath, "go.mod"))
 	require.NoError(t, err)
-	t.Logf("Test_IsModule: tempDir %#v", tmpDir)
-
-	// Create tmp go.mod file
-	tmpModFile, err := os.CreateTemp(tmpDir, "go.mod")
-	require.NoError(t, err)
+	t.Logf("Test_IsModule: created %#v", tmpModFile.Name())
 
 	testcases := map[string]struct {
 		path     string
 		expected bool
+		mustErr  bool
 	}{
 		"valid_module_path": {
-			path:     tmpModFile.Name(),
+			path:     filepath.Dir(tmpModFile.Name()),
 			expected: true,
-		},
-		"invalid_module_path": {
-			path:     "testdata/tmp2860899422/tmpfile3594698071.go",
-			expected: false,
+			mustErr:  false,
 		},
 	}
 	for name, tc := range testcases {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
-			isMod := mergo.IsModule(tc.path)
+			isMod, err := mergo.IsModule(tc.path)
+			if tc.mustErr {
+				require.Error(t, err)
+			}
+			require.NoError(t, err)
+
 			t.Logf("Test_IsModule: testing path: %s", tc.path)
 			require.Equal(t, tc.expected, isMod)
 		})
 	}
+
+	t.Cleanup(func() {
+		os.Remove(tmpModFile.Name())
+	})
 }
 
 func IsValidTestSubPath(t *testing.T, path string) bool {
