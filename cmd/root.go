@@ -23,16 +23,19 @@ package cmd
 
 import (
 	"fmt"
+	"log/slog"
 	"os"
 	"path/filepath"
 
-	"github.com/kndrad/mergo/internal/merge"
+	"github.com/kndrad/mergo/internal/mergo"
 	"github.com/spf13/cobra"
 )
 
+var logger *slog.Logger
+
 var (
-	InPath  string
-	OutPath string
+	modPath string
+	outPath string
 )
 
 var mergoCmd = &cobra.Command{
@@ -48,21 +51,28 @@ Usage:
 
 This will process all Go packages in the input directory and create merged files in the output directory.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		in, err := filepath.Abs(filepath.Clean(InPath))
+		in, err := filepath.Abs(filepath.Clean(modPath))
+		logger.Info("mergo:", "modPath", in)
 		if err != nil {
-			return err
-		}
-		fmt.Println("Merging packages found at:", in)
+			logger.Error("rootCmd:", "err", err)
 
-		outDir := filepath.Dir(OutPath)
-		if err := os.MkdirAll(outDir, 0755); err != nil {
-			return fmt.Errorf("failed to create output directory: %w", err)
+			return fmt.Errorf("rootCmd: %w", err)
 		}
 
-		if err := merge.ManyPackages(in, OutPath); err != nil {
-			return err
+		outDir := filepath.Dir(outPath)
+		if err := os.MkdirAll(outDir, 0o600); err != nil {
+			logger.Error("rootCmd:", "err", err)
+
+			return fmt.Errorf("rootCmd: %w", err)
+		}
+
+		if err := mergo.Module(in, outPath); err != nil {
+			logger.Error("rootCmd:", "err", err)
+
+			return fmt.Errorf("rootCmd: %w", err)
 		}
 		fmt.Println("Merging done")
+
 		return nil
 	},
 }
@@ -75,9 +85,11 @@ func Execute() {
 }
 
 func init() {
+	logger = slog.New(slog.NewTextHandler(os.Stdout, nil))
+
 	mergoCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-	mergoCmd.Flags().StringVarP(&InPath, "path", "p", "", "Input path of the direcotyr")
-	mergoCmd.Flags().StringVarP(&OutPath, "out", "o", ".", "Output path for merged files")
-	mergoCmd.MarkFlagRequired("path")
-	mergoCmd.MarkFlagRequired("out")
+	mergoCmd.Flags().StringVarP(&modPath, "path", "p", "", "Path of Go module")
+	mergoCmd.Flags().StringVarP(&outPath, "out", "o", ".", "Output path")
+
+	mergoCmd.MarkFlagsRequiredTogether("path", "out")
 }
