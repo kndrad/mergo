@@ -173,17 +173,6 @@ func Test_IsModule(t *testing.T) {
 			require.Equal(t, tc.expected, isMod)
 		})
 	}
-
-	t.Cleanup(func() {
-		if err := os.RemoveAll(tmpDir); err != nil {
-			t.Fail()
-			t.Logf("Test_IsModule err: %v", err)
-		}
-		if err := os.Remove(tmpModFile.Name()); err != nil {
-			t.Fail()
-			t.Logf("Test_IsModule err: %v", err)
-		}
-	})
 }
 
 func IsValidTestSubPath(t *testing.T, path string) bool {
