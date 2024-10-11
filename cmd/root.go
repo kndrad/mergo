@@ -45,6 +45,8 @@ var mergoCmd = &cobra.Command{
 
 It processes all non-test Go files in the specified input directory, combining them into a single file per package.
 The tool preserves package structure, merges import statements, and maintains all declarations and functions.
+If either path of go module or output path for txt file is empty, the current directory is used.
+
 
 Usage:
   mergo -p /path/to/gomodule/directory -o /path/to/output/directory
@@ -109,8 +111,7 @@ func init() {
 	logger = slog.New(slog.NewTextHandler(os.Stdout, nil))
 
 	mergoCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-	mergoCmd.Flags().StringVarP(&modPath, "path", "p", "", "Path of Go module")
+	mergoCmd.Flags().StringVarP(&modPath, "path", "p", ".", "Path of Go module")
 	mergoCmd.Flags().StringVarP(&outPath, "out", "o", ".", "Output path")
-
 	mergoCmd.MarkFlagsRequiredTogether("path", "out")
 }
