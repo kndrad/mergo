@@ -14,8 +14,8 @@ import (
 	"strings"
 )
 
-// ErrNoFilesFound is returned when no Go files are found in the specified directory.
-var ErrNoFilesFound = errors.New("go files not found in specified dir path")
+// ErrNoPackagesFound is returned when no Go files are found in the specified directory.
+var ErrNoPackagesFound = errors.New("no go package files found")
 
 // Module processes all Go packages found in the Go module directory and merges all files found in packages.
 func Module(path, out string) error {
@@ -28,7 +28,7 @@ func Module(path, out string) error {
 		return fmt.Errorf("mergo: %w", err)
 	}
 	if len(packages) == 0 {
-		return ErrNoFilesFound
+		return ErrNoPackagesFound
 	}
 
 	files := make(map[string]*ast.File)
@@ -71,22 +71,51 @@ func Module(path, out string) error {
 }
 
 func ModulePkgFiles(path string) (map[string]*ast.File, error) {
+	// Walk the file tree.
+	root := filepath.Clean(path)
+	fmt.Println(root)
+
 	fset := token.NewFileSet()
-
-	packages, err := parser.ParseDir(fset, path, func(fi fs.FileInfo) bool {
-		return !strings.HasSuffix(fi.Name(), "_test.go")
-	}, 0)
-	if err != nil {
-		return nil, fmt.Errorf("mergo: %w", err)
-	}
-	if len(packages) == 0 {
-		return nil, ErrNoFilesFound
-	}
-
 	files := make(map[string]*ast.File)
 
-	for pkg := range maps.Values(packages) {
-		files[pkg.Name] = ast.MergePackageFiles(pkg, ast.FilterImportDuplicates|ast.FilterUnassociatedComments)
+	var (
+		// Does not include test files.
+		filter = func(fi fs.FileInfo) bool {
+			filename := fi.Name()
+			isTestFile := !strings.HasSuffix(filename, "_test.go")
+			isModFile := !strings.HasPrefix(filename, "go.mod")
+
+			return isTestFile || isModFile
+		}
+		// Adds map of package name -> package AST to the objects slice
+		walk = func(path string, info fs.FileInfo, err error) error {
+			if err != nil {
+				fmt.Printf("prevent panic by handling failure accessing a path %q: %v\n", path, err)
+
+				return err
+			}
+
+			fmt.Println("path:", path, "info.Name():", info.Name())
+
+			dir := filepath.Dir(path)
+			fmt.Println("filepath.Dir(path):", path)
+
+			pkgs, err := parser.ParseDir(fset, dir, filter, 0)
+			if err != nil {
+				return fmt.Errorf("mergo: %w", err)
+			}
+			fmt.Println(pkgs)
+			for pkg := range maps.Values(pkgs) {
+				files[pkg.Name] = ast.MergePackageFiles(pkg, ast.FilterImportDuplicates|ast.FilterUnassociatedComments)
+			}
+
+			return nil
+		}
+	)
+
+	err := filepath.Walk(root, walk)
+	if err != nil {
+		return nil, fmt.Errorf("mergo: %w", err)
 	}
 
 	return files, nil
@@ -99,11 +128,11 @@ func IsModule(path string) (bool, error) {
 		return false, ErrInvalidModule
 	}
 	name := filepath.Join(filepath.Clean(path), "go.mod")
-	modFile, err := os.OpenFile(name, os.O_RDONLY, 0o666)
+	f, err := os.OpenFile(name, os.O_RDONLY, 0o666)
 	if err != nil && errors.Is(err, os.ErrNotExist) {
-		return false, fmt.Errorf("isModule: %w", err)
+		return false, fmt.Errorf("mergo: %w", err)
 	}
-	defer modFile.Close()
+	defer f.Close()
 
 	return true, nil
 }
