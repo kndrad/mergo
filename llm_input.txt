@@ -62,10 +62,7 @@ This will process all Go packages and it's files in a directory and write to an 
 		logger.Error("mergoCmd:", "err", err)
 		return fmt.Errorf("mergoCmd: %w", err)
 	}
-	for k, v := range files {
-		fmt.Println("k:", k, "v:", v)
-	}
-	outPath = filepath.Clean(outPath) + string(filepath.Separator) + "out.txt"
+	outPath = filepath.Clean(outPath) + string(filepath.Separator) + "llm_input.txt"
 	fmt.Println(outPath)
 	outFile, err := os.OpenFile(outPath, os.O_APPEND|os.O_CREATE|os.O_RDWR, 0o600)
 	if err != nil {
@@ -384,7 +381,11 @@ func Test_IsModule(t *testing.T) {
 		})
 	}
 	t.Cleanup(func() {
-		os.Remove(tmpModFile.Name())
+		err := os.Remove(tmpModFile.Name())
+		if err != nil {
+			t.FailNow()
+			t.Logf("Test_IsModule err: %v", err)
+		}
 	})
 }
 

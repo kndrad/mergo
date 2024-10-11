@@ -67,7 +67,7 @@ This will process all Go packages and it's files in a directory and write to an 
 			return fmt.Errorf("mergoCmd: %w", err)
 		}
 
-		outPath = filepath.Clean(outPath) + string(filepath.Separator) + "out.txt"
+		outPath = filepath.Clean(outPath) + string(filepath.Separator) + "llm_input.txt"
 		fmt.Println(outPath)
 		outFile, err := os.OpenFile(outPath, os.O_APPEND|os.O_CREATE|os.O_RDWR, 0o600)
 		if err != nil {
