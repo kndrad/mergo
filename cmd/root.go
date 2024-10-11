@@ -66,9 +66,6 @@ This will process all Go packages and it's files in a directory and write to an 
 
 			return fmt.Errorf("mergoCmd: %w", err)
 		}
-		for k, v := range files {
-			fmt.Println("k:", k, "v:", v)
-		}
 
 		outPath = filepath.Clean(outPath) + string(filepath.Separator) + "out.txt"
 		fmt.Println(outPath)
