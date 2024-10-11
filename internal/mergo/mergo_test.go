@@ -172,7 +172,11 @@ func Test_IsModule(t *testing.T) {
 	}
 
 	t.Cleanup(func() {
-		os.Remove(tmpModFile.Name())
+		err := os.Remove(tmpModFile.Name())
+		if err != nil {
+			t.FailNow()
+			t.Logf("Test_IsModule err: %v", err)
+		}
 	})
 }
 
