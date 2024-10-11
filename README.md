@@ -4,8 +4,6 @@ mergo is a command-line tool that merges multiple Go files found in a Go module 
 
 Created for learning purposes.
 
-Go version: go1.23.2
-
 ## Details
 
 - Combines all non-test Go files in a package
