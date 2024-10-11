@@ -51,7 +51,7 @@ Usage:
 
 This will process all Go packages and it's files in a directory and write to an output.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		modPath = filepath.Clean(modPath)
+		modPath := filepath.Clean(modPath)
 		logger.Info("mergo:", "modPath", modPath)
 
 		if ok, err := mergo.IsModule(modPath); !ok || err != nil {
@@ -60,7 +60,38 @@ This will process all Go packages and it's files in a directory and write to an 
 			return fmt.Errorf("mergoCmd: %w", err)
 		}
 
-		if err := mergo.Module(modPath, outPath); err != nil {
+		files, err := mergo.ModulePackageFiles(modPath)
+		if err != nil {
+			logger.Error("mergoCmd:", "err", err)
+
+			return fmt.Errorf("mergoCmd: %w", err)
+		}
+		for k, v := range files {
+			fmt.Println("k:", k, "v:", v)
+		}
+
+		outPath = filepath.Clean(outPath) + string(filepath.Separator) + "out.txt"
+		fmt.Println(outPath)
+		outFile, err := os.OpenFile(outPath, os.O_APPEND|os.O_CREATE|os.O_RDWR, 0o600)
+		if err != nil {
+			fmt.Println(err)
+
+			return fmt.Errorf("cmd: %w", err)
+		}
+		defer outFile.Close()
+
+		// Clear outFile and reset to beginning
+		if err := outFile.Truncate(0); err != nil {
+			logger.Error("wordsCmd", "err", err)
+
+			return fmt.Errorf("cmd: %w", err)
+		}
+		if _, err := outFile.Seek(0, 0); err != nil {
+			logger.Error("wordsCmd", "err", err)
+
+			return fmt.Errorf("cmd: %w", err)
+		}
+		if err := mergo.ProcessFiles(files, outFile); err != nil {
 			logger.Error("mergoCmd:", "err", err)
 
 			return fmt.Errorf("mergoCmd: %w", err)

@@ -20,36 +20,36 @@ const (
 	GoVersion   = "1.23.2"
 )
 
-func Test_ModulePkgFiles(t *testing.T) {
+func Test_ModulePackageFiles(t *testing.T) {
 	t.Parallel()
 
 	wd, err := os.Getwd()
 	require.NoError(t, err)
 
-	t.Logf("Test_ModulePkgFiles: wd: %s", wd)
+	t.Logf("Test_ModulePackageFiles: wd: %s", wd)
 	tmpDirPath := filepath.Join(wd, TestDataDir)
 	if !IsValidTestSubPath(t, tmpDirPath) {
 		t.Error("not a valid test subpath", tmpDirPath)
 	}
-	t.Logf("Test_ModulePkgFiles: tempDirPath %s", tmpDirPath)
+	t.Logf("Test_ModulePackageFiles: tempDirPath %s", tmpDirPath)
 
 	tmpDir, err := os.MkdirTemp(tmpDirPath, TestTmpDir)
 	require.NoError(t, err)
 	defer os.RemoveAll(tmpDir)
-	t.Logf("Test_ModulePkgFiles: tempDir %#v", tmpDir)
+	t.Logf("Test_ModulePackageFiles: tempDir %#v", tmpDir)
 
 	tmpModFile, err := os.CreateTemp(tmpDir, "go.mod")
 	require.NoError(t, err)
 	defer os.Remove(tmpModFile.Name())
-	t.Logf("Test_ModulePkgFiles: created tmpModFile: %#v", tmpModFile.Name())
+	t.Logf("Test_ModulePackageFiles: created tmpModFile: %#v", tmpModFile.Name())
 
 	require.NoError(t, err)
 	topDecl := "module github.com/kndrad/tmpmod\n\n" + "go " + GoVersion + "\n\n"
 	if _, err := tmpModFile.WriteString(topDecl); err != nil {
-		t.Logf("Test_ModulePkgFiles: top go.mod declaration err: %v", err)
+		t.Logf("Test_ModulePackageFiles: top go.mod declaration err: %v", err)
 		t.FailNow()
 	}
-	t.Logf("Test_ModulePkgFiles: wrote go.mod declaration")
+	t.Logf("Test_ModulePackageFiles: wrote go.mod declaration")
 
 	filesTotal := 4
 	tmpFilenames := make([]string, 0, filesTotal)
@@ -58,7 +58,7 @@ func Test_ModulePkgFiles(t *testing.T) {
 		require.NoError(t, err)
 		tmpFilenames = append(tmpFilenames, tmpFile.Name())
 		defer os.Remove(tmpFile.Name())
-		t.Logf("Test_ModulePkgFiles: created tmpFile: %#v", tmpFile.Name())
+		t.Logf("Test_ModulePackageFiles: created tmpFile: %#v", tmpFile.Name())
 	}
 
 	tmpPkgFilesTotal := filesTotal - 1
@@ -67,61 +67,61 @@ func Test_ModulePkgFiles(t *testing.T) {
 		tmpFile, err := os.OpenFile(tmpFilename, os.O_WRONLY, os.ModePerm)
 		defer func() {
 			if err := tmpFile.Close(); err != nil {
-				t.Logf("Test_ModulePkgFiles err closing tmpFile: %v", err)
+				t.Logf("Test_ModulePackageFiles err closing tmpFile: %v", err)
 				t.FailNow()
 			}
 		}()
-		t.Logf("Test_ModulePkgFiles opened file: %s", tmpFile.Name())
+		t.Logf("Test_ModulePackageFiles opened file: %s", tmpFile.Name())
 		require.NoError(t, err)
 
 		topDecl := "package " + tmpPkgName
 		if _, err := tmpFile.WriteString(topDecl); err != nil {
-			t.Logf("Test_ModulePkgFiles err: %v", err)
+			t.Logf("Test_ModulePackageFiles err: %v", err)
 			t.FailNow()
 		}
-		t.Logf("Test_ModulePkgFiles wrote top declaration: %s", topDecl)
+		t.Logf("Test_ModulePackageFiles wrote top declaration: %s", topDecl)
 	}
 
 	tmpPkgDirPath := filepath.Join(tmpDir, tmpPkgName)
 	if err := os.Mkdir(tmpPkgDirPath, 0o777); err != nil {
 		t.FailNow()
-		t.Logf("test_ModulePkgFiles err: %v", err)
+		t.Logf("test_ModulePackageFiles err: %v", err)
 	}
-	t.Logf("Test_ModulePkgFiles created tmpPkg dir at: %v", tmpPkgDirPath)
+	t.Logf("Test_ModulePackageFiles created tmpPkg dir at: %v", tmpPkgDirPath)
 
 	for i, tmpFilename := range tmpFilenames[:tmpPkgFilesTotal] {
 		if file, err := os.OpenFile(tmpFilename, os.O_RDONLY, 0o666); err == nil {
-			t.Logf("Test_ModulePkgFiles closing file: %s", tmpFilename)
+			t.Logf("Test_ModulePackageFiles closing file: %s", tmpFilename)
 			if err := file.Close(); err != nil {
 				t.FailNow()
-				t.Logf("Test_ModulePkgFiles err: %v", err)
+				t.Logf("Test_ModulePackageFiles err: %v", err)
 			}
 		}
 		tmpPkgFilename := filepath.Join(tmpPkgDirPath, filepath.Base(tmpFilename))
 		if err := os.Rename(tmpFilename, tmpPkgFilename); err != nil {
-			t.Logf("Test_ModulePkgFiles err: %v", err)
+			t.Logf("Test_ModulePackageFiles err: %v", err)
 			t.FailNow()
 		}
 
 		tmpFilenames[i] = tmpPkgFilename
 
-		t.Logf("Test_ModulePkgFiles: moved file from %s to %s", tmpFilename, tmpPkgFilename)
+		t.Logf("Test_ModulePackageFiles: moved file from %s to %s", tmpFilename, tmpPkgFilename)
 	}
 
 	tmpMainPkgName := "main"
 	for _, tmpFilename := range tmpFilenames[tmpPkgFilesTotal:] {
 		tmpFile, err := os.OpenFile(tmpFilename, os.O_WRONLY, os.ModeAppend)
-		t.Logf("Test_ModulePkgFiles opened file: %s", tmpFile.Name())
+		t.Logf("Test_ModulePackageFiles opened file: %s", tmpFile.Name())
 		require.NoError(t, err)
 		if _, err := tmpFile.WriteString("package " + tmpMainPkgName); err != nil {
-			t.Logf("Test_ModulePkgFiles err: %v", err)
+			t.Logf("Test_ModulePackageFiles err: %v", err)
 			t.FailNow()
 		}
-		t.Logf("Test_ModulePkgFiles wrote top declaration: %v", topDecl)
+		t.Logf("Test_ModulePackageFiles wrote top declaration: %v", topDecl)
 	}
 
 	path := tmpDir
-	files, err := mergo.ModulePkgFiles(path)
+	files, err := mergo.ModulePackageFiles(path)
 
 	fmt.Printf("files: %#v\n", files)
 	require.NoError(t, err)

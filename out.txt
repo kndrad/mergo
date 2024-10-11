@@ -1,0 +1,407 @@
+################
+PACKAGE main
+################
+
+package main
+
+import (
+	"github.com/kndrad/mergo/cmd"
+)
+
+
+
+
+func main() {
+	cmd.Execute()
+}
+
+################
+PACKAGE cmd
+################
+
+package cmd
+
+import (
+	"fmt"
+	"log/slog"
+	"os"
+	"path/filepath"
+	"github.com/kndrad/mergo/internal/mergo"
+	"github.com/spf13/cobra"
+)
+
+
+
+
+var logger *slog.Logger
+
+
+var (
+	modPath string
+	outPath string
+)
+
+
+var mergoCmd = &cobra.Command{Use: "mergo", Short: "Merge each Go package files into one", Long: `Mergo is a command-line tool that merges multiple Go files within a package into a single file.
+
+It processes all non-test Go files in the specified input directory, combining them into a single file per package.
+The tool preserves package structure, merges import statements, and maintains all declarations and functions.
+
+Usage:
+  mergo -p /path/to/gomodule/directory -o /path/to/output/directory
+
+This will process all Go packages and it's files in a directory and write to an output.`, RunE: func(cmd *cobra.Command, args []string) error {
+	modPath := filepath.Clean(modPath)
+	logger.Info("mergo:", "modPath", modPath)
+	if ok, err := mergo.IsModule(modPath); !ok || err != nil {
+		logger.Error("mergoCmd: not a Go module", "modPath", modPath)
+		return fmt.Errorf("mergoCmd: %w", err)
+	}
+	files, err := mergo.ModulePackageFiles(modPath)
+	if err != nil {
+		logger.Error("mergoCmd:", "err", err)
+		return fmt.Errorf("mergoCmd: %w", err)
+	}
+	for k, v := range files {
+		fmt.Println("k:", k, "v:", v)
+	}
+	outPath = filepath.Clean(outPath) + string(filepath.Separator) + "out.txt"
+	fmt.Println(outPath)
+	outFile, err := os.OpenFile(outPath, os.O_APPEND|os.O_CREATE|os.O_RDWR, 0o600)
+	if err != nil {
+		fmt.Println(err)
+		return fmt.Errorf("cmd: %w", err)
+	}
+	defer outFile.Close()
+	if err := outFile.Truncate(0); err != nil {
+		logger.Error("wordsCmd", "err", err)
+		return fmt.Errorf("cmd: %w", err)
+	}
+	if _, err := outFile.Seek(0, 0); err != nil {
+		logger.Error("wordsCmd", "err", err)
+		return fmt.Errorf("cmd: %w", err)
+	}
+	if err := mergo.ProcessFiles(files, outFile); err != nil {
+		logger.Error("mergoCmd:", "err", err)
+		return fmt.Errorf("mergoCmd: %w", err)
+	}
+	fmt.Println("Merging done")
+	return nil
+}}
+
+
+func Execute() {
+	err := mergoCmd.Execute()
+	if err != nil {
+		os.Exit(1)
+	}
+}
+
+
+func init() {
+	logger = slog.New(slog.NewTextHandler(os.Stdout, nil))
+	mergoCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	mergoCmd.Flags().StringVarP(&modPath, "path", "p", "", "Path of Go module")
+	mergoCmd.Flags().StringVarP(&outPath, "out", "o", ".", "Output path")
+	mergoCmd.MarkFlagsRequiredTogether("path", "out")
+}
+
+################
+PACKAGE mergo
+################
+
+package mergo
+
+import (
+	"errors"
+	"fmt"
+	"go/ast"
+	"go/format"
+	"go/parser"
+	"go/token"
+	"io"
+	"io/fs"
+	"maps"
+	"os"
+	"path/filepath"
+	"strings"
+)
+
+
+
+
+var ErrNoPackagesFound = errors.New("no go package files found")
+
+
+func ProcessFiles(files map[string]*ast.File, w io.Writer) error {
+	fset := token.NewFileSet()
+	var b strings.Builder
+	for name, file := range files {
+		b.WriteString("################" + "\n")
+		b.WriteString("PACKAGE" + " " + name + "\n")
+		b.WriteString("################" + "\n\n")
+		b.WriteString(fmt.Sprintf("package %s\n\nimport (\n", name))
+		for _, spec := range file.Imports {
+			b.WriteString("\t")
+			if err := format.Node(&b, fset, spec); err != nil {
+				return fmt.Errorf("mergo: %w", err)
+			}
+			b.WriteString("\n")
+		}
+		b.WriteString(")\n\n")
+		for _, d := range file.Decls {
+			if ast.FilterDecl(d, func(s string) bool {
+				return s != token.IMPORT.String()
+			}) {
+				b.WriteString("\n")
+				if err := format.Node(&b, fset, d); err != nil {
+					return fmt.Errorf("mergo: %w", err)
+				}
+			}
+			b.WriteString("\n\n")
+		}
+		if _, err := w.Write([]byte(b.String())); err != nil {
+			return fmt.Errorf("mergo: %w", err)
+		}
+		b.Reset()
+	}
+	return nil
+}
+
+
+func ModulePackageFiles(path string) (map[string]*ast.File, error) {
+	root := filepath.Clean(path)
+	fmt.Println(root)
+	fset := token.NewFileSet()
+	files := make(map[string]*ast.File)
+	var (
+		filter = func(fi fs.FileInfo) bool {
+			filename := fi.Name()
+			isTestFile := !strings.HasSuffix(filename, "_test.go")
+			isModFile := !strings.HasPrefix(filename, "go.mod")
+			return isTestFile || isModFile
+		}
+		walk = func(path string, info fs.FileInfo, err error) error {
+			if err != nil {
+				fmt.Printf("prevent panic by handling failure accessing a path %q: %v\n", path, err)
+				return err
+			}
+			dir := filepath.Dir(path)
+			pkgs, err := parser.ParseDir(fset, dir, filter, 0)
+			if err != nil {
+				return fmt.Errorf("mergo: %w", err)
+			}
+			for pkg := range maps.Values(pkgs) {
+				files[pkg.Name] = ast.MergePackageFiles(pkg, ast.FilterImportDuplicates|ast.FilterUnassociatedComments)
+			}
+			return nil
+		}
+	)
+	err := filepath.Walk(root, walk)
+	if err != nil {
+		return nil, fmt.Errorf("mergo: %w", err)
+	}
+	return files, nil
+}
+
+
+var ErrInvalidModule = errors.New("invalid Go Module")
+
+
+func IsModule(path string) (bool, error) {
+	if !checkDir(path) {
+		return false, ErrInvalidModule
+	}
+	name := filepath.Join(filepath.Clean(path), "go.mod")
+	f, err := os.OpenFile(name, os.O_RDONLY, 0o666)
+	if err != nil && errors.Is(err, os.ErrNotExist) {
+		return false, fmt.Errorf("mergo: %w", err)
+	}
+	defer f.Close()
+	return true, nil
+}
+
+
+func checkDir(dir string) bool {
+	info, err := os.Stat(filepath.Dir(dir))
+	if err != nil && errors.Is(err, os.ErrNotExist) {
+		return false
+	}
+	if !info.IsDir() {
+		return false
+	}
+	return true
+}
+
+################
+PACKAGE mergo_test
+################
+
+package mergo_test
+
+import (
+	"fmt"
+	"os"
+	"path/filepath"
+	"strings"
+	"testing"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"github.com/kndrad/mergo/internal/mergo"
+)
+
+
+
+
+const (
+	TestDataDir = "testdata"
+	TestTmpFile = "tmpfile"
+	TestTmpDir  = "tmp"
+	GoVersion   = "1.23.2"
+)
+
+
+func Test_ModulePackageFiles(t *testing.T) {
+	t.Parallel()
+	wd, err := os.Getwd()
+	require.NoError(t, err)
+	t.Logf("Test_ModulePackageFiles: wd: %s", wd)
+	tmpDirPath := filepath.Join(wd, TestDataDir)
+	if !IsValidTestSubPath(t, tmpDirPath) {
+		t.Error("not a valid test subpath", tmpDirPath)
+	}
+	t.Logf("Test_ModulePackageFiles: tempDirPath %s", tmpDirPath)
+	tmpDir, err := os.MkdirTemp(tmpDirPath, TestTmpDir)
+	require.NoError(t, err)
+	defer os.RemoveAll(tmpDir)
+	t.Logf("Test_ModulePackageFiles: tempDir %#v", tmpDir)
+	tmpModFile, err := os.CreateTemp(tmpDir, "go.mod")
+	require.NoError(t, err)
+	defer os.Remove(tmpModFile.Name())
+	t.Logf("Test_ModulePackageFiles: created tmpModFile: %#v", tmpModFile.Name())
+	require.NoError(t, err)
+	topDecl := "module github.com/kndrad/tmpmod\n\n" + "go " + GoVersion + "\n\n"
+	if _, err := tmpModFile.WriteString(topDecl); err != nil {
+		t.Logf("Test_ModulePackageFiles: top go.mod declaration err: %v", err)
+		t.FailNow()
+	}
+	t.Logf("Test_ModulePackageFiles: wrote go.mod declaration")
+	filesTotal := 4
+	tmpFilenames := make([]string, 0, filesTotal)
+	for range filesTotal {
+		tmpFile, err := os.CreateTemp(tmpDir, TestTmpFile+"*.go")
+		require.NoError(t, err)
+		tmpFilenames = append(tmpFilenames, tmpFile.Name())
+		defer os.Remove(tmpFile.Name())
+		t.Logf("Test_ModulePackageFiles: created tmpFile: %#v", tmpFile.Name())
+	}
+	tmpPkgFilesTotal := filesTotal - 1
+	tmpPkgName := "mergetmp"
+	for _, tmpFilename := range tmpFilenames[:tmpPkgFilesTotal] {
+		tmpFile, err := os.OpenFile(tmpFilename, os.O_WRONLY, os.ModePerm)
+		defer func() {
+			if err := tmpFile.Close(); err != nil {
+				t.Logf("Test_ModulePackageFiles err closing tmpFile: %v", err)
+				t.FailNow()
+			}
+		}()
+		t.Logf("Test_ModulePackageFiles opened file: %s", tmpFile.Name())
+		require.NoError(t, err)
+		topDecl := "package " + tmpPkgName
+		if _, err := tmpFile.WriteString(topDecl); err != nil {
+			t.Logf("Test_ModulePackageFiles err: %v", err)
+			t.FailNow()
+		}
+		t.Logf("Test_ModulePackageFiles wrote top declaration: %s", topDecl)
+	}
+	tmpPkgDirPath := filepath.Join(tmpDir, tmpPkgName)
+	if err := os.Mkdir(tmpPkgDirPath, 0o777); err != nil {
+		t.FailNow()
+		t.Logf("test_ModulePackageFiles err: %v", err)
+	}
+	t.Logf("Test_ModulePackageFiles created tmpPkg dir at: %v", tmpPkgDirPath)
+	for i, tmpFilename := range tmpFilenames[:tmpPkgFilesTotal] {
+		if file, err := os.OpenFile(tmpFilename, os.O_RDONLY, 0o666); err == nil {
+			t.Logf("Test_ModulePackageFiles closing file: %s", tmpFilename)
+			if err := file.Close(); err != nil {
+				t.FailNow()
+				t.Logf("Test_ModulePackageFiles err: %v", err)
+			}
+		}
+		tmpPkgFilename := filepath.Join(tmpPkgDirPath, filepath.Base(tmpFilename))
+		if err := os.Rename(tmpFilename, tmpPkgFilename); err != nil {
+			t.Logf("Test_ModulePackageFiles err: %v", err)
+			t.FailNow()
+		}
+		tmpFilenames[i] = tmpPkgFilename
+		t.Logf("Test_ModulePackageFiles: moved file from %s to %s", tmpFilename, tmpPkgFilename)
+	}
+	tmpMainPkgName := "main"
+	for _, tmpFilename := range tmpFilenames[tmpPkgFilesTotal:] {
+		tmpFile, err := os.OpenFile(tmpFilename, os.O_WRONLY, os.ModeAppend)
+		t.Logf("Test_ModulePackageFiles opened file: %s", tmpFile.Name())
+		require.NoError(t, err)
+		if _, err := tmpFile.WriteString("package " + tmpMainPkgName); err != nil {
+			t.Logf("Test_ModulePackageFiles err: %v", err)
+			t.FailNow()
+		}
+		t.Logf("Test_ModulePackageFiles wrote top declaration: %v", topDecl)
+	}
+	path := tmpDir
+	files, err := mergo.ModulePackageFiles(path)
+	fmt.Printf("files: %#v\n", files)
+	require.NoError(t, err)
+	require.NotEmpty(t, files)
+	assert.Len(t, files, 2)
+}
+
+
+func Test_IsModule(t *testing.T) {
+	t.Parallel()
+	wd, err := os.Getwd()
+	require.NoError(t, err)
+	t.Logf("Test_IsModule: wd: %s", wd)
+	tmpModDirPath := filepath.Join(wd, TestDataDir)
+	t.Logf("Test_IsModule: tempDirPath %s", tmpModDirPath)
+	tmpModFile, err := os.Create(filepath.Join(tmpModDirPath, "go.mod"))
+	require.NoError(t, err)
+	t.Logf("Test_IsModule: created %#v", tmpModFile.Name())
+	testcases := map[string]struct {
+		path     string
+		expected bool
+		mustErr  bool
+	}{"valid_module_path": {path: filepath.Dir(tmpModFile.Name()), expected: true, mustErr: false}}
+	for name, tc := range testcases {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+			isMod, err := mergo.IsModule(tc.path)
+			if tc.mustErr {
+				require.Error(t, err)
+			}
+			require.NoError(t, err)
+			t.Logf("Test_IsModule: testing path: %s", tc.path)
+			require.Equal(t, tc.expected, isMod)
+		})
+	}
+	t.Cleanup(func() {
+		os.Remove(tmpModFile.Name())
+	})
+}
+
+
+func IsValidTestSubPath(t *testing.T, path string) bool {
+	t.Helper()
+	wd, err := os.Getwd()
+	require.NoError(t, err)
+	return IsSubPath(wd, path)
+}
+
+
+func IsSubPath(basePath, filePath string) bool {
+	rel, err := filepath.Rel(basePath, filePath)
+	if err != nil {
+		return false
+	}
+	return !strings.HasPrefix(rel, ".."+string(filepath.Separator))
+}
+

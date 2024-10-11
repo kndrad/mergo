@@ -7,6 +7,7 @@ import (
 	"go/format"
 	"go/parser"
 	"go/token"
+	"io"
 	"io/fs"
 	"maps"
 	"os"
@@ -17,29 +18,16 @@ import (
 // ErrNoPackagesFound is returned when no Go files are found in the specified directory.
 var ErrNoPackagesFound = errors.New("no go package files found")
 
-// Module processes all Go packages found in the Go module directory and merges all files found in packages.
-func Module(path, out string) error {
+// ProcessFiles processes all Go packages found in the Go module directory and merges all files found in packages.
+func ProcessFiles(files map[string]*ast.File, w io.Writer) error {
 	fset := token.NewFileSet()
 
-	packages, err := parser.ParseDir(fset, path, func(fi fs.FileInfo) bool {
-		return !strings.HasSuffix(fi.Name(), "_test.go")
-	}, 0)
-	if err != nil {
-		return fmt.Errorf("mergo: %w", err)
-	}
-	if len(packages) == 0 {
-		return ErrNoPackagesFound
-	}
-
-	files := make(map[string]*ast.File)
-
-	for pkg := range maps.Values(packages) {
-		files[pkg.Name] = ast.MergePackageFiles(pkg, ast.FilterImportDuplicates|ast.FilterUnassociatedComments)
-	}
+	var b strings.Builder
 
 	for name, file := range files {
-		var b strings.Builder
-
+		b.WriteString("################" + "\n")
+		b.WriteString("PACKAGE" + " " + name + "\n")
+		b.WriteString("################" + "\n\n")
 		b.WriteString(fmt.Sprintf("package %s\n\nimport (\n", name))
 		for _, spec := range file.Imports {
 			b.WriteString("\t")
@@ -59,18 +47,18 @@ func Module(path, out string) error {
 					return fmt.Errorf("mergo: %w", err)
 				}
 			}
-			b.WriteString("\n")
+			b.WriteString("\n\n")
 		}
-
-		if err := os.WriteFile(filepath.Join(filepath.Dir(out), name+".txt"), []byte(b.String()), 0o600); err != nil {
-			return fmt.Errorf("mergo: failed to write file %s: %w", out, err)
+		if _, err := w.Write([]byte(b.String())); err != nil {
+			return fmt.Errorf("mergo: %w", err)
 		}
+		b.Reset()
 	}
 
 	return nil
 }
 
-func ModulePkgFiles(path string) (map[string]*ast.File, error) {
+func ModulePackageFiles(path string) (map[string]*ast.File, error) {
 	// Walk the file tree.
 	root := filepath.Clean(path)
 	fmt.Println(root)
@@ -95,16 +83,12 @@ func ModulePkgFiles(path string) (map[string]*ast.File, error) {
 				return err
 			}
 
-			fmt.Println("path:", path, "info.Name():", info.Name())
-
 			dir := filepath.Dir(path)
-			fmt.Println("filepath.Dir(path):", path)
 
 			pkgs, err := parser.ParseDir(fset, dir, filter, 0)
 			if err != nil {
 				return fmt.Errorf("mergo: %w", err)
 			}
-			fmt.Println(pkgs)
 			for pkg := range maps.Values(pkgs) {
 				files[pkg.Name] = ast.MergePackageFiles(pkg, ast.FilterImportDuplicates|ast.FilterUnassociatedComments)
 			}
