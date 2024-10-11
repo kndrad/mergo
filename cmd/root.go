@@ -52,7 +52,6 @@ Usage:
 This will process all Go packages and it's files in a directory and write to an output.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		modPath := filepath.Clean(modPath)
-		logger.Info("mergo:", "modPath", modPath)
 
 		if ok, err := mergo.IsModule(modPath); !ok || err != nil {
 			logger.Error("mergoCmd: not a Go module", "modPath", modPath)

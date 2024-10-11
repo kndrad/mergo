@@ -1,21 +1,4 @@
 ################
-PACKAGE main
-################
-
-package main
-
-import (
-	"github.com/kndrad/mergo/cmd"
-)
-
-
-
-
-func main() {
-	cmd.Execute()
-}
-
-################
 PACKAGE cmd
 ################
 
@@ -52,7 +35,6 @@ Usage:
 
 This will process all Go packages and it's files in a directory and write to an output.`, RunE: func(cmd *cobra.Command, args []string) error {
 	modPath := filepath.Clean(modPath)
-	logger.Info("mergo:", "modPath", modPath)
 	if ok, err := mergo.IsModule(modPath); !ok || err != nil {
 		logger.Error("mergoCmd: not a Go module", "modPath", modPath)
 		return fmt.Errorf("mergoCmd: %w", err)
@@ -404,5 +386,22 @@ func IsSubPath(basePath, filePath string) bool {
 		return false
 	}
 	return !strings.HasPrefix(rel, ".."+string(filepath.Separator))
+}
+
+################
+PACKAGE main
+################
+
+package main
+
+import (
+	"github.com/kndrad/mergo/cmd"
+)
+
+
+
+
+func main() {
+	cmd.Execute()
 }
 
