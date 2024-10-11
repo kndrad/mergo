@@ -49,7 +49,7 @@ The tool preserves package structure, merges import statements, and maintains al
 Usage:
   mergo -p /path/to/gomodule/directory -o /path/to/output/directory
 
-This will process all Go packages in the input directory and create merged files in the output directory.`,
+This will process all Go packages and it's files in a directory and write to an output.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		modPath = filepath.Clean(modPath)
 		logger.Info("mergo:", "modPath", modPath)
