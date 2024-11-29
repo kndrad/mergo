@@ -1,4 +1,4 @@
-package mergo
+package mergef
 
 import (
 	"errors"
@@ -18,16 +18,16 @@ import (
 // ErrNoPackagesFound is returned when no Go files are found in the specified directory.
 var ErrNoPackagesFound = errors.New("no go package files found")
 
-// ProcessFiles processes all Go packages found in the Go module directory and merges all files found in packages.
-func ProcessFiles(files map[string]*ast.File, w io.Writer) error {
+// WritePackages processes all Go packages found in the Go module directory and writes merged content.
+func WritePackages(files map[string]*ast.File, w io.Writer) error {
 	fset := token.NewFileSet()
 
 	var b strings.Builder
 
 	for name, file := range files {
-		b.WriteString("################" + "\n")
-		b.WriteString("PACKAGE" + " " + name + "\n")
-		b.WriteString("################" + "\n\n")
+		b.WriteString("##################" + "\n")
+		b.WriteString("##  PACKAGE" + " " + name + " ##" + "\n")
+		b.WriteString("##################" + "\n\n")
 		b.WriteString(fmt.Sprintf("package %s\n\nimport (\n", name))
 		for _, spec := range file.Imports {
 			b.WriteString("\t")
@@ -58,7 +58,9 @@ func ProcessFiles(files map[string]*ast.File, w io.Writer) error {
 	return nil
 }
 
-func ModulePackageFiles(path string) (map[string]*ast.File, error) {
+// WalkGoModule traverses a Go module directory and returns a map of package names to their merged AST representations.
+// It skips test files and go.mod files during processing, combining multiple files of the same package into a single AST.
+func WalkGoModule(path string) (map[string]*ast.File, error) {
 	// Walk the file tree.
 	root := filepath.Clean(path)
 	fmt.Println(root)
@@ -87,7 +89,7 @@ func ModulePackageFiles(path string) (map[string]*ast.File, error) {
 
 			pkgs, err := parser.ParseDir(fset, dir, filter, 0)
 			if err != nil {
-				return fmt.Errorf("mergo: %w", err)
+				return fmt.Errorf("parse dir %w", err)
 			}
 			for pkg := range maps.Values(pkgs) {
 				files[pkg.Name] = ast.MergePackageFiles(pkg, ast.FilterImportDuplicates|ast.FilterUnassociatedComments)
@@ -99,7 +101,7 @@ func ModulePackageFiles(path string) (map[string]*ast.File, error) {
 
 	err := filepath.Walk(root, walk)
 	if err != nil {
-		return nil, fmt.Errorf("mergo: %w", err)
+		return nil, fmt.Errorf("filepath walk: %w", err)
 	}
 
 	return files, nil
@@ -107,28 +109,21 @@ func ModulePackageFiles(path string) (map[string]*ast.File, error) {
 
 var ErrInvalidModule = errors.New("invalid Go Module")
 
-func IsModule(path string) (bool, error) {
-	if !checkDir(path) {
+func IsGoMod(path string) (bool, error) {
+	stat, err := os.Stat(filepath.Dir(path))
+	if err != nil && errors.Is(err, os.ErrNotExist) {
 		return false, ErrInvalidModule
 	}
+	if !stat.IsDir() {
+		return false, ErrInvalidModule
+	}
+
 	name := filepath.Join(filepath.Clean(path), "go.mod")
 	f, err := os.OpenFile(name, os.O_RDONLY, 0o666)
 	if err != nil && errors.Is(err, os.ErrNotExist) {
-		return false, fmt.Errorf("mergo: %w", err)
+		return false, fmt.Errorf("module does not exist: %w", err)
 	}
 	defer f.Close()
 
 	return true, nil
-}
-
-func checkDir(dir string) bool {
-	info, err := os.Stat(filepath.Dir(dir))
-	if err != nil && errors.Is(err, os.ErrNotExist) {
-		return false
-	}
-	if !info.IsDir() {
-		return false
-	}
-
-	return true
 }

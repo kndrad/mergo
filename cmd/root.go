@@ -26,92 +26,96 @@ import (
 	"log/slog"
 	"os"
 	"path/filepath"
+	"time"
 
-	"github.com/kndrad/mergo/internal/mergo"
+	"github.com/kndrad/mergo/internal/mergef"
 	"github.com/spf13/cobra"
 )
 
-var logger *slog.Logger
+func Logger() *slog.Logger {
+	l := slog.New(slog.NewTextHandler(os.Stdout, nil))
 
-var (
-	modPath string
-	outPath string
-)
+	return l
+}
 
-var mergoCmd = &cobra.Command{
+var rootCmd = &cobra.Command{
 	Use:   "mergo",
-	Short: "Merge each Go package files into one",
+	Short: "Write Go module each Go package file to txt file",
 	Long: `Mergo is a command-line tool that merges multiple Go files within a package into a single file.
 
 It processes all non-test Go files in the specified input directory, combining them into a single file per package.
-The tool preserves package structure, merges import statements, and maintains all declarations and functions.
-If either path of go module or output path for txt file is empty, the current directory is used.
-
+Command preserves package structure, merges import statements, and maintains all declarations and functions.
 
 Usage:
   mergo -p /path/to/gomodule/directory -o /path/to/output/directory
 
+Or you can also use it without any flags and it will process current module and output in this module with:
+  mergo
+
+
 This will process all Go packages and it's files in a directory and write to an output.`,
+	Args: cobra.MinimumNArgs(2),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		modPath := filepath.Clean(modPath)
+		modulePath := filepath.Clean(args[0])
+		logger := Logger()
 
-		if ok, err := mergo.IsModule(modPath); !ok || err != nil {
-			logger.Error("mergoCmd: not a Go module", "modPath", modPath)
+		if ok, err := mergef.IsGoMod(modulePath); !ok || err != nil {
+			logger.Error("Failed to check if path is a Go module", "path", modulePath, "err", err)
 
-			return fmt.Errorf("mergoCmd: %w", err)
+			return fmt.Errorf("is module: %w", err)
 		}
 
-		files, err := mergo.ModulePackageFiles(modPath)
+		files, err := mergef.WalkGoModule(modulePath)
 		if err != nil {
-			logger.Error("mergoCmd:", "err", err)
+			logger.Error("Failed to walk module", "err", err)
 
-			return fmt.Errorf("mergoCmd: %w", err)
+			return fmt.Errorf("walk module: %w", err)
 		}
 
-		outPath = filepath.Clean(outPath) + string(filepath.Separator) + "llm_input.txt"
-		fmt.Println(outPath)
-		outFile, err := os.OpenFile(outPath, os.O_APPEND|os.O_CREATE|os.O_RDWR, 0o600)
+		// Open txt file
+		timestamp := time.Now().Format("200601021504")
+		outPath := filepath.Join(args[1], fmt.Sprintf("llm%s.txt", timestamp))
+		txtf, err := os.OpenFile(outPath, os.O_APPEND|os.O_CREATE|os.O_RDWR, 0o600)
 		if err != nil {
-			fmt.Println(err)
+			logger.Error("Failed to open txt file", "path", outPath, "err", err)
 
-			return fmt.Errorf("cmd: %w", err)
+			return fmt.Errorf("open file: %w", err)
 		}
-		defer outFile.Close()
+		defer txtf.Close()
 
-		// Clear outFile and reset to beginning
-		if err := outFile.Truncate(0); err != nil {
-			logger.Error("wordsCmd", "err", err)
+		// Clear and reset to beginning
+		if err := txtf.Truncate(0); err != nil {
+			logger.Error("Failed to truncrate", "err", err)
 
-			return fmt.Errorf("cmd: %w", err)
+			return fmt.Errorf("truncate: %w", err)
 		}
-		if _, err := outFile.Seek(0, 0); err != nil {
-			logger.Error("wordsCmd", "err", err)
+		if _, err := txtf.Seek(0, 0); err != nil {
+			logger.Error("Failed to seek 0 0", "err", err)
 
-			return fmt.Errorf("cmd: %w", err)
+			return fmt.Errorf("seek: %w", err)
 		}
-		if err := mergo.ProcessFiles(files, outFile); err != nil {
-			logger.Error("mergoCmd:", "err", err)
 
-			return fmt.Errorf("mergoCmd: %w", err)
+		// Write each merged Go file content
+		if err := mergef.WritePackages(files, txtf); err != nil {
+			logger.Error("Failed to merge Go files:", "err", err)
+
+			return fmt.Errorf("merge go files: %w", err)
 		}
-		fmt.Println("Merging done")
 
 		return nil
 	},
 }
 
 func Execute() {
-	err := mergoCmd.Execute()
+	err := rootCmd.Execute()
 	if err != nil {
 		os.Exit(1)
 	}
 }
 
 func init() {
-	logger = slog.New(slog.NewTextHandler(os.Stdout, nil))
-
-	mergoCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-	mergoCmd.Flags().StringVarP(&modPath, "path", "p", ".", "Path of Go module")
-	mergoCmd.Flags().StringVarP(&outPath, "out", "o", ".", "Output path")
-	mergoCmd.MarkFlagsRequiredTogether("path", "out")
+	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	rootCmd.Flags().StringP("module", "m", ".", "Go module path")
+	rootCmd.Flags().StringP("out", "o", ".", "Output directory")
+	rootCmd.MarkFlagsRequiredTogether("module", "out")
 }

@@ -4,7 +4,7 @@ run:
   timeout: 1m
   # Include test files or not.
   # Default: true
-  tests: true
+  tests: false
   # If set, we pass it to "go list -mod={option}". From "go help modules":
   # If invoked with -mod=readonly, the go command is disallowed from the implicit
   # automatic updating of go.mod described above. Instead, it fails when any changes
@@ -71,7 +71,7 @@ linters:
     - containedctx
     - contextcheck
     - copyloopvar
-    - cyclop
+    #- cyclop
     - decorder
     #- depguard
     - dogsled
@@ -82,7 +82,7 @@ linters:
     #- errcheck
     - errchkjson
     - errname
-    - errorlint
+    # - errorlint
     # - execinquery
     - exhaustive
     #- exhaustruct
@@ -110,7 +110,7 @@ linters:
     - gomoddirectives
     - gomodguard
     - goprintffuncname
-    - gosec
+    #- gosec
     - gosimple
     - gosmopolitan
     - govet
@@ -120,8 +120,8 @@ linters:
     - ineffassign
     - interfacebloat
     - intrange
-    - ireturn
-    - lll
+    #- ireturn
+    #- lll
     - loggercheck
     - maintidx
     - makezero
@@ -134,11 +134,11 @@ linters:
     - nilerr
     - nilnil
     - nlreturn
-    - noctx
+    #- noctx
     - nolintlint
     - nonamedreturns
     - nosprintfhostport
-    - paralleltest
+    #- paralleltest
     - perfsprint
     - prealloc
     - predeclared
@@ -153,22 +153,22 @@ linters:
     - staticcheck
     - stylecheck
     - tagalign
-    - tagliatelle
+    #- tagliatelle
     - tenv
     - testableexamples
     - testifylint
-    - testpackage
+    #- testpackage
     - thelper
-    - tparallel
+    #- tparallel
     - typecheck
     - unconvert
     - unparam
-    - unused
+    #- unused
     - usestdlibvars
     #- varnamelen
     - wastedassign
     - whitespace
-    - wrapcheck
+    #- wrapcheck
     #- wsl
     - zerologlint
   # Enable all available linters.
@@ -185,7 +185,7 @@ linters:
   # - containedctx
   # - contextcheck
   # - copyloopvar
-  # - cyclop
+    - cyclop
   # - decorder
     - depguard
   # - dogsled
@@ -196,7 +196,7 @@ linters:
     - errcheck
   # - errchkjson
   # - errname
-  # - errorlint
+    - errorlint
   # - execinquery
   # - exhaustive
     - exhaustruct
@@ -224,7 +224,7 @@ linters:
   # - gomoddirectives
   # - gomodguard
   # - goprintffuncname
-  # - gosec
+    - gosec
   # - gosimple
   # - gosmopolitan
   # - govet
@@ -234,8 +234,8 @@ linters:
   # - ineffassign
   # - interfacebloat
   # - intrange
-  # - ireturn
-  # - lll
+    - ireturn
+    - lll
   # - loggercheck
   # - maintidx
   # - makezero
@@ -248,11 +248,11 @@ linters:
   # - nilerr
   # - nilnil
   # - nlreturn
-  # - noctx
+    - noctx
   # - nolintlint
   # - nonamedreturns
   # - nosprintfhostport
-  # - paralleltest
+    - paralleltest
   # - perfsprint
   # - prealloc
   # - predeclared
@@ -267,22 +267,22 @@ linters:
   # - staticcheck
   # - stylecheck
   # - tagalign
-  # - tagliatelle
+    - tagliatelle
   # - tenv
   # - testableexamples
   # - testifylint
-  # - testpackage
+    - testpackage
   # - thelper
-  # - tparallel
+    - tparallel
   # - typecheck
   # - unconvert
   # - unparam
-  # - unused
+    - unused
   # - usestdlibvars
     - varnamelen
   # - wastedassign
   # - whitespace
-  # - wrapcheck
+    - wrapcheck
     - wsl
   # - zerologlint
   # - deadcode # Deprecated

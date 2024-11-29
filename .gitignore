@@ -27,3 +27,6 @@ go.work.sum
 
 # .txt
 main.txt
+
+# output
+llm*.txt
