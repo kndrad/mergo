@@ -291,7 +291,8 @@ func init() {
 	// Exclusions
 	dirCmd.Flags().String("path", ".", "Directory path")
 	dirCmd.Flags().String("out", ".", "Output directory")
-	dirCmd.MarkFlagsRequiredTogether("path", "out")
+	dirCmd.MarkFlagRequired("path")
+	dirCmd.MarkFlagRequired("out")
 
 	dirCmd.Flags().StringArray("exclude", defaultExcludedFiles(), "Exclude files")
 	dirCmd.Flags().StringArray("exclude-ext", defaultExcludedExtensions(), "Exclude files by extensions")
