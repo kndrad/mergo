@@ -269,10 +269,17 @@ type exclusions struct {
 
 func isExcluded(path string, e exclusions) bool {
 	path = filepath.Clean(path)
-	dir := strings.Split(path, string(filepath.Separator))[0]
 	ext := filepath.Ext(path)
 
-	return slices.Contains(e.dirs, dir) || slices.Contains(e.exts, ext)
+	// Check if any part of the path contains excluded directory
+	parts := strings.Split(path, string(filepath.Separator))
+	for _, part := range parts {
+		if slices.Contains(e.dirs, part) {
+			return true
+		}
+	}
+
+	return slices.Contains(e.exts, ext)
 }
 
 // Checks if err is not nil.
