@@ -32,7 +32,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func Logger() *slog.Logger {
+func DefaultLogger() *slog.Logger {
 	l := slog.New(slog.NewTextHandler(os.Stdout, nil))
 
 	return l
@@ -57,7 +57,7 @@ This will process all Go packages and it's files in a directory and write to an 
 	Args: cobra.MinimumNArgs(2),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		modulePath := filepath.Clean(args[0])
-		logger := Logger()
+		logger := DefaultLogger()
 
 		if ok, err := mergef.IsGoMod(modulePath); !ok || err != nil {
 			logger.Error("Failed to check if path is a Go module", "path", modulePath, "err", err)
