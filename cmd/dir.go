@@ -37,6 +37,99 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var dirCmd = &cobra.Command{
+	Use:   "dir",
+	Short: "Combines content of files but only located within a directory.",
+	Long: `Combines files from directory into single output file, excluding unwanted files.
+
+Output format:
+##### /path/to/file ######
+[content]
+
+Example:
+  mergo dir --path=/src --out=/tmp --exclude=.git --exclude-ext=.md`,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		logger := DefaultLogger()
+
+		root, err := cmd.Flags().GetString("path")
+		checkErr(logger, "Failed to get path flag string value", err)
+		checkPathArg(root, logger)
+
+		// Exclusions
+		dirs, err := cmd.Flags().GetStringArray("exclude")
+		checkErr(logger, "Failed to get exclude flag", err)
+
+		exts, err := cmd.Flags().GetStringArray("exclude-ext")
+		checkErr(logger, "Failed to get exclude-ext flag", err)
+
+		// Load entries
+		entries, err := Walk(root, exclusions{
+			dirs: slices.Concat(dirs, defaultExcludedFiles()),
+			exts: slices.Concat(exts, defaultExcludedExtensions()),
+		})
+		checkErr(logger, "Failed to walk to get entries", err)
+
+		// Read all and append each file content
+		contents := make([]string, 0)
+		for entry := range entries.ReadAll() {
+			if entry == nil {
+				return errors.New("reading in entries failed")
+			}
+			builder := new(strings.Builder)
+			if _, err := builder.WriteString(fmt.Sprintf("##### %s ######\n\n", entry.path)); err != nil {
+				return fmt.Errorf("buffer write: %w", err)
+			}
+			if _, err := builder.Write(entry.Data()); err != nil {
+				return fmt.Errorf("buffer write: %w", err)
+			}
+			if _, err := builder.WriteString("\n"); err != nil {
+				return fmt.Errorf("buffer write: %w", err)
+			}
+			contents = append(contents, builder.String())
+		}
+
+		// Write each buffer to a file
+		outpath, err := cmd.Flags().GetString("out")
+		fmt.Println(outpath)
+		checkErr(logger, "failed to get out string flag", err)
+		checkPathArg(outpath, logger)
+
+		timestamp := time.Now().Format("200601021504")
+		txtf, err := os.OpenFile(
+			filepath.Join(
+				outpath,
+				string(filepath.Separator),
+				fmt.Sprintf("llm_%s_%s.txt", entries.PopularExt(), timestamp),
+			),
+			os.O_APPEND|os.O_CREATE|os.O_RDWR,
+			0o600,
+		)
+		checkErr(logger, "Failed to open txt file", err)
+		defer txtf.Close()
+
+		if err := setupf(txtf, logger); err != nil {
+			logger.Error("Failed to setup txt file", "err", err)
+
+			return fmt.Errorf("setupf: %w", err)
+		}
+
+		// Write each appended file string content
+		for _, content := range contents {
+			if _, err := txtf.WriteString(content); err != nil {
+				logger.Error("Failed to write string to txt file", "err", err)
+
+				return fmt.Errorf("txtf write string: %w", err)
+			}
+		}
+
+		logger.Info("Program completed successfully",
+			slog.Int("code", 0),
+		)
+
+		return nil
+	},
+}
+
 type Entries struct {
 	dir   string
 	paths []string
@@ -126,93 +219,6 @@ func (e *Entries) ReadAll() iter.Seq[*Entry] {
 			yield(entry)
 		}
 	}
-}
-
-var dirCmd = &cobra.Command{
-	Use:   "dir",
-	Short: "Combines content of files but only located within a directory.",
-	Long:  ``,
-	RunE: func(cmd *cobra.Command, args []string) error {
-		logger := DefaultLogger()
-
-		root, err := cmd.Flags().GetString("path")
-		checkErr(logger, "Failed to get path flag string value", err)
-		checkPathArg(root, logger)
-
-		// Exclusions
-		dirs, err := cmd.Flags().GetStringArray("exclude")
-		checkErr(logger, "Failed to get exclude flag", err)
-
-		exts, err := cmd.Flags().GetStringArray("exclude-ext")
-		checkErr(logger, "Failed to get exclude-ext flag", err)
-
-		// Load entries
-		entries, err := Walk(root, exclusions{
-			dirs: slices.Concat(dirs, defaultExcludedFiles()),
-			exts: slices.Concat(exts, defaultExcludedExtensions()),
-		})
-		checkErr(logger, "Failed to walk to get entries", err)
-		fmt.Printf("ENTRIES: %#v", entries)
-
-		// Read all and append each file content
-		contents := make([]string, 0)
-		for entry := range entries.ReadAll() {
-			if entry == nil {
-				return errors.New("reading in entries failed")
-			}
-			builder := new(strings.Builder)
-			if _, err := builder.WriteString(fmt.Sprintf("##### %s ######\n\n", entry.path)); err != nil {
-				return fmt.Errorf("buffer write: %w", err)
-			}
-			if _, err := builder.Write(entry.Data()); err != nil {
-				return fmt.Errorf("buffer write: %w", err)
-			}
-			if _, err := builder.WriteString("\n"); err != nil {
-				return fmt.Errorf("buffer write: %w", err)
-			}
-			contents = append(contents, builder.String())
-		}
-
-		// Write each buffer to a file
-		outpath, err := cmd.Flags().GetString("out")
-		fmt.Println(outpath)
-		checkErr(logger, "failed to get out string flag", err)
-		checkPathArg(outpath, logger)
-
-		timestamp := time.Now().Format("200601021504")
-		txtf, err := os.OpenFile(
-			filepath.Join(
-				outpath,
-				string(filepath.Separator),
-				fmt.Sprintf("llm_%s_%s.txt", entries.PopularExt(), timestamp),
-			),
-			os.O_APPEND|os.O_CREATE|os.O_RDWR,
-			0o600,
-		)
-		checkErr(logger, "Failed to open txt file", err)
-		defer txtf.Close()
-
-		if err := setupf(txtf, logger); err != nil {
-			logger.Error("Failed to setup txt file", "err", err)
-
-			return fmt.Errorf("setupf: %w", err)
-		}
-
-		// Write each appended file string content
-		for _, content := range contents {
-			if _, err := txtf.WriteString(content); err != nil {
-				logger.Error("Failed to write string to txt file", "err", err)
-
-				return fmt.Errorf("txtf write string: %w", err)
-			}
-		}
-
-		logger.Info("Program completed successfully",
-			slog.Int("code", 0),
-		)
-
-		return nil
-	},
 }
 
 func setupf(f *os.File, logger *slog.Logger) error {
