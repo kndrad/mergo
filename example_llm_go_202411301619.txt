@@ -1,0 +1,1232 @@
+##### /home/kndrad/Projects/mergo/.golangci.yaml ######
+
+run:
+  # Timeout for analysis, e.g. 30s, 5m.
+  # Default: 1m
+  timeout: 1m
+  # Include test files or not.
+  # Default: true
+  tests: false
+  # If set, we pass it to "go list -mod={option}". From "go help modules":
+  # If invoked with -mod=readonly, the go command is disallowed from the implicit
+  # automatic updating of go.mod described above. Instead, it fails when any changes
+  # to go.mod are needed. This setting is most useful to check that go.mod does
+  # not need updates, such as in a continuous integration and testing system.
+  # If invoked with -mod=vendor, the go command assumes that the vendor
+  # directory holds the correct copies of dependencies and ignores
+  # the dependency descriptions in go.mod.
+  #
+  # Allowed values: readonly|vendor|mod
+  # Default: ""
+  modules-download-mode: readonly
+  # Allow multiple parallel golangci-lint instances running.
+  # If false, golangci-lint acquires file lock on start.
+  # Default: false
+  allow-parallel-runners: true
+  # Allow multiple golangci-lint instances running, but serialize them around a lock.
+  # If false, golangci-lint exits with an error if it fails to acquire file lock on start.
+  # Default: false
+  allow-serial-runners:
+    true
+    # Define the Go version limit.
+  # Mainly related to generics support since go1.18.
+  # Default: use Go version from the go.mod file, fallback on the env var `GOVERSION`, fallback on 1.17
+  # go: "1.19"
+output:
+  # Sort results by the order defined in `sort-order`.
+  # Default: false
+  sort-results: true
+  # Order to use when sorting results.
+  # Require `sort-results` to `true`.
+  # Possible values: `file`, `linter`, and `severity`.
+  #
+  # If the severity values are inside the following list, they are ordered in this order:
+  #   1. error
+  #   2. warning
+  #   3. high
+  #   4. medium
+  #   5. low
+  # Either they are sorted alphabetically.
+  #
+  # Default: ["file"]
+  sort-order:
+    - severity
+  # Show statistics per linter.
+  # Default: false
+  show-stats: false
+# All available settings of specific linters.
+# linters-settings:
+# See the dedicated "linters-settings" documentation section.
+# option: value
+linters:
+  # Disable all linters.
+  # Default: false
+  # disable-all: false
+  # Enable specific linter
+  # https://golangci-lint.run/usage/linters/#enabled-by-default
+  enable:
+    - asasalint
+    - asciicheck
+    - bidichk
+    - bodyclose
+    - canonicalheader
+    - containedctx
+    - contextcheck
+    - copyloopvar
+    #- cyclop
+    - decorder
+    #- depguard
+    - dogsled
+    - dupl
+    # - dupword
+    - durationcheck
+    # - err113
+    #- errcheck
+    - errchkjson
+    - errname
+    # - errorlint
+    # - execinquery
+    - exhaustive
+    #- exhaustruct
+    # - exportloopref
+    - fatcontext
+    #- forbidigo
+    - forcetypeassert
+    #- funlen
+    # - gci
+    - ginkgolinter
+    - gocheckcompilerdirectives
+    #- gochecknoglobals
+    #- gochecknoinits
+    - gochecksumtype
+    - gocognit
+    - goconst
+    - gocritic
+    - gocyclo
+    - godot
+    - godox
+    - gofmt
+    - gofumpt
+    - goheader
+    - goimports
+    - gomoddirectives
+    - gomodguard
+    - goprintffuncname
+    #- gosec
+    - gosimple
+    - gosmopolitan
+    - govet
+    - grouper
+    - importas
+    - inamedparam
+    - ineffassign
+    - interfacebloat
+    - intrange
+    #- ireturn
+    #- lll
+    - loggercheck
+    - maintidx
+    - makezero
+    - mirror
+    - misspell
+    #- mnd
+    - musttag
+    - nakedret
+    - nestif
+    - nilerr
+    - nilnil
+    - nlreturn
+    #- noctx
+    - nolintlint
+    - nonamedreturns
+    - nosprintfhostport
+    #- paralleltest
+    - perfsprint
+    - prealloc
+    - predeclared
+    - promlinter
+    - protogetter
+    - reassign
+    #- revive
+    - rowserrcheck
+    - sloglint
+    - spancheck
+    - sqlclosecheck
+    - staticcheck
+    - stylecheck
+    - tagalign
+    #- tagliatelle
+    - tenv
+    - testableexamples
+    - testifylint
+    #- testpackage
+    - thelper
+    #- tparallel
+    - typecheck
+    - unconvert
+    - unparam
+    #- unused
+    - usestdlibvars
+    #- varnamelen
+    - wastedassign
+    - whitespace
+    #- wrapcheck
+    #- wsl
+    - zerologlint
+  # Enable all available linters.
+  # Default: false
+  # enable-all: false
+  # Disable specific linter
+  # https://golangci-lint.run/usage/linters/#disabled-by-default
+  disable:
+  # - asasalint
+  # - asciicheck
+  # - bidichk
+  # - bodyclose
+  # - canonicalheader
+  # - containedctx
+  # - contextcheck
+  # - copyloopvar
+    - cyclop
+  # - decorder
+    - depguard
+  # - dogsled
+  # - dupl
+  # - dupword
+  # - durationcheck
+    - err113
+    - errcheck
+  # - errchkjson
+  # - errname
+    - errorlint
+  # - execinquery
+  # - exhaustive
+    - exhaustruct
+  # - exportloopref
+  # - fatcontext
+    - forbidigo
+  # - forcetypeassert
+    - funlen
+    - gci
+  # - ginkgolinter
+  # - gocheckcompilerdirectives
+    - gochecknoglobals
+    - gochecknoinits
+  # - gochecksumtype
+  # - gocognit
+  # - goconst
+  # - gocritic
+  # - gocyclo
+  # - godot
+  # - godox
+  # - gofmt
+  # - gofumpt
+  # - goheader
+  # - goimports
+  # - gomoddirectives
+  # - gomodguard
+  # - goprintffuncname
+    - gosec
+  # - gosimple
+  # - gosmopolitan
+  # - govet
+  # - grouper
+  # - importas
+  # - inamedparam
+  # - ineffassign
+  # - interfacebloat
+  # - intrange
+    - ireturn
+    - lll
+  # - loggercheck
+  # - maintidx
+  # - makezero
+  # - mirror
+  # - misspell
+    - mnd
+  # - musttag
+  # - nakedret
+  # - nestif
+  # - nilerr
+  # - nilnil
+  # - nlreturn
+    - noctx
+  # - nolintlint
+  # - nonamedreturns
+  # - nosprintfhostport
+    - paralleltest
+  # - perfsprint
+  # - prealloc
+  # - predeclared
+  # - promlinter
+  # - protogetter
+  # - reassign
+    - revive
+  # - rowserrcheck
+  # - sloglint
+  # - spancheck
+  # - sqlclosecheck
+  # - staticcheck
+  # - stylecheck
+  # - tagalign
+    - tagliatelle
+  # - tenv
+  # - testableexamples
+  # - testifylint
+    - testpackage
+  # - thelper
+    - tparallel
+  # - typecheck
+  # - unconvert
+  # - unparam
+    - unused
+  # - usestdlibvars
+    - varnamelen
+  # - wastedassign
+  # - whitespace
+    - wrapcheck
+    - wsl
+  # - zerologlint
+  # - deadcode # Deprecated
+  # - exhaustivestruct # Deprecated
+  # - golint # Deprecated
+  # - ifshort # Deprecated
+  # - interfacer # Deprecated
+  # - maligned # Deprecated
+  # - gomnd # Deprecated
+  # - nosnakecase # Deprecated
+  # - scopelint # Deprecated
+  # - structcheck # Deprecated
+  # - varcheck # Deprecated
+  # Enable presets.
+  # https://golangci-lint.run/usage/linters
+  # Default: []
+  presets:
+    - bugs
+    - comment
+    - complexity
+    - error
+    - format
+    - import
+    - metalinter
+    - module
+    - performance
+    - sql
+    - style
+    - test
+    - unused
+  # Enable only fast linters from enabled linters set (first run won't be fast)
+  # Default: false
+  fast: false
+issues:
+  # Enables exclude of directories:
+  # - vendor$, third_party$, testdata$, examples$, Godeps$, builtin$
+  # Default: true
+  exclude-dirs-use-default: true
+  # Mode of the generated files analysis.
+  #
+  # - `strict`: sources are excluded by following strictly the Go generated file convention.
+  #    Source files that have lines matching only the following regular expression will be excluded: `^// Code generated .* DO NOT EDIT\.$`
+  #    This line must appear before the first non-comment, non-blank text in the file.
+  #    https://go.dev/s/generatedcode
+  # - `lax`: sources are excluded if they contain lines `autogenerated file`, `code generated`, `do not edit`, etc.
+  # - `disable`: disable the generated files exclusion.
+  #
+  # Default: lax
+  exclude-generated: lax
+  # Fix found issues (if it's supported by the linter).
+  # Default: false
+  fix: false
+severity:
+  # Set the default severity for issues.
+  #
+  # If severity rules are defined and the issues do not match or no severity is provided to the rule
+  # this will be the default severity applied.
+  # Severities should match the supported severity names of the selected out format.
+  # - Code climate: https://docs.codeclimate.com/docs/issues#issue-severity
+  # - Checkstyle: https://checkstyle.sourceforge.io/property_types.html#SeverityLevel
+  # - GitHub: https://help.github.com/en/actions/reference/workflow-commands-for-github-actions#setting-an-error-message
+  # - TeamCity: https://www.jetbrains.com/help/teamcity/service-messages.html#Inspection+Instance
+  #
+  # `@linter` can be used as severity value to keep the severity from linters (e.g. revive, gosec, ...)
+  #
+  # Default: ""
+  default-severity: ""
+  # If set to true `severity-rules` regular expressions become case-sensitive.
+  # Default: false
+  case-sensitive: false
+
+##### /home/kndrad/Projects/mergo/LICENSE ######
+
+The MIT License (MIT)
+
+Copyright © 2024 Konrad Nowara
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+
+##### /home/kndrad/Projects/mergo/Makefile ######
+
+cover:
+	go test ./... failfast -coverprofile=coverage.out
+
+cover-v:
+	go test ./... failfast -coverprofile=coverage.out -v
+
+cover-html:
+	go test ./... -failfast -coverprofile=coverage.out
+	go tool cover -html=coverage.out
+
+fmt:
+	./scripts/format.sh
+
+review:
+	go test ./... -failfast -coverprofile=coverage.out
+	./scripts/format.sh
+	./scripts/check.sh
+
+
+##### /home/kndrad/Projects/mergo/cmd/dir.go ######
+
+/*
+Copyright © 2024 Konrad Nowara
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+*/
+package cmd
+
+import (
+	"errors"
+	"fmt"
+	"io/fs"
+	"iter"
+	"log/slog"
+	"os"
+	"path/filepath"
+	"slices"
+	"sort"
+	"strings"
+	"time"
+
+	"github.com/spf13/cobra"
+)
+
+var dirCmd = &cobra.Command{
+	Use:   "dir",
+	Short: "Combines content of files but only located within a directory.",
+	Long: `Combines files from directory into single output file, excluding unwanted files.
+
+Output format:
+##### /path/to/file ######
+[content]
+
+Example:
+  mergo dir --path=/src --out=/tmp --exclude=.git --exclude-ext=.md`,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		logger := DefaultLogger()
+
+		root, err := cmd.Flags().GetString("path")
+		checkErr(logger, "Failed to get path flag string value", err)
+		checkPathArg(root, logger)
+
+		// Exclusions
+		dirs, err := cmd.Flags().GetStringArray("exclude")
+		checkErr(logger, "Failed to get exclude flag", err)
+
+		exts, err := cmd.Flags().GetStringArray("exclude-ext")
+		checkErr(logger, "Failed to get exclude-ext flag", err)
+
+		// Load entries
+		entries, err := Walk(root, exclusions{
+			dirs: slices.Concat(dirs, defaultExcludedFiles()),
+			exts: slices.Concat(exts, defaultExcludedExtensions()),
+		})
+		checkErr(logger, "Failed to walk to get entries", err)
+
+		// Read all and append each file content
+		contents := make([]string, 0)
+		for entry := range entries.ReadAll() {
+			if entry == nil {
+				return errors.New("reading in entries failed")
+			}
+			builder := new(strings.Builder)
+			if _, err := builder.WriteString(fmt.Sprintf("##### %s ######\n\n", entry.path)); err != nil {
+				return fmt.Errorf("buffer write: %w", err)
+			}
+			if _, err := builder.Write(entry.Data()); err != nil {
+				return fmt.Errorf("buffer write: %w", err)
+			}
+			if _, err := builder.WriteString("\n"); err != nil {
+				return fmt.Errorf("buffer write: %w", err)
+			}
+			contents = append(contents, builder.String())
+		}
+
+		// Write each buffer to a file
+		outpath, err := cmd.Flags().GetString("out")
+		fmt.Println(outpath)
+		checkErr(logger, "failed to get out string flag", err)
+		checkPathArg(outpath, logger)
+
+		timestamp := time.Now().Format("200601021504")
+		txtf, err := os.OpenFile(
+			filepath.Join(
+				outpath,
+				string(filepath.Separator),
+				fmt.Sprintf("llm_%s_%s.txt", entries.PopularExt(), timestamp),
+			),
+			os.O_APPEND|os.O_CREATE|os.O_RDWR,
+			0o600,
+		)
+		checkErr(logger, "Failed to open txt file", err)
+		defer txtf.Close()
+
+		if err := setupf(txtf, logger); err != nil {
+			logger.Error("Failed to setup txt file", "err", err)
+
+			return fmt.Errorf("setupf: %w", err)
+		}
+
+		// Write each appended file string content
+		for _, content := range contents {
+			if _, err := txtf.WriteString(content); err != nil {
+				logger.Error("Failed to write string to txt file", "err", err)
+
+				return fmt.Errorf("txtf write string: %w", err)
+			}
+		}
+
+		logger.Info("Program completed successfully",
+			slog.Int("code", 0),
+		)
+
+		return nil
+	},
+}
+
+type Entries struct {
+	dir   string
+	paths []string
+	excl  exclusions
+}
+
+func Walk(root string, excl exclusions) (*Entries, error) {
+	entries := &Entries{
+		dir:   root,
+		paths: make([]string, 0),
+		excl:  excl,
+	}
+
+	if err := filepath.Walk(root, func(path string, info fs.FileInfo, err error) error {
+		// Do not append excluded dirs and file by extensions (and dirs overall)
+		if !isExcluded(path, excl) && !info.IsDir() {
+			entries.paths = append(entries.paths, path)
+		}
+
+		return nil
+	}); err != nil {
+		return nil, fmt.Errorf("walk dir: %w", err)
+	}
+
+	return entries, nil
+}
+
+// Returns most common extension which occurs in entries paths.
+func (e *Entries) PopularExt() string {
+	if e == nil {
+		panic("entries cannot be nil")
+	}
+	if e.paths == nil {
+		panic("entires paths cannot be nil")
+	}
+	ranking := make(map[string]int)
+	for _, path := range e.paths {
+		ranking[filepath.Ext(path)]++
+	}
+	type pair struct {
+		ext   string
+		count int
+	}
+	// Sort
+	pairs := make([]pair, 0)
+	for e, c := range ranking {
+		pairs = append(pairs, pair{ext: e, count: c})
+	}
+	sort.Slice(pairs, func(i, j int) bool {
+		return pairs[i].count > pairs[j].count
+	})
+	// Pick most popular
+	s, _ := strings.CutPrefix(pairs[0].ext, ".")
+
+	return s
+}
+
+type Entry struct {
+	path string
+	data []byte
+}
+
+func (e *Entry) Data() []byte {
+	return e.data
+}
+
+func (e *Entry) read() error {
+	data, err := os.ReadFile(e.path)
+	if err != nil {
+		return fmt.Errorf("read file: %w", err)
+	}
+	e.data = data
+
+	return nil
+}
+
+func (e *Entries) ReadAll() iter.Seq[*Entry] {
+	return func(yield func(*Entry) bool) {
+		entry := new(Entry)
+
+		for _, path := range e.paths {
+			entry.path = path
+
+			if err := entry.read(); err != nil {
+				yield(nil)
+			}
+			yield(entry)
+		}
+	}
+}
+
+func setupf(f *os.File, logger *slog.Logger) error {
+	if err := f.Truncate(0); err != nil {
+		logger.Error("Failed to truncrate", "err", err)
+
+		return fmt.Errorf("truncate: %w", err)
+	}
+	if _, err := f.Seek(0, 0); err != nil {
+		logger.Error("Failed to seek 0 0", "err", err)
+
+		return fmt.Errorf("seek: %w", err)
+	}
+
+	return nil
+}
+
+func checkPathArg(path string, logger *slog.Logger) {
+	path = filepath.Clean(path)
+
+	stat, err := os.Stat(path)
+	checkErr(logger, "Failed to get file info", err)
+
+	if !stat.IsDir() {
+		panic("path arg must be dir")
+	}
+}
+
+func cutHome(path string) (string, error) {
+	path = filepath.Clean(path)
+
+	dir, err := os.UserHomeDir()
+	if err != nil {
+		return "", fmt.Errorf("home dir: %w", err)
+	}
+	s, found := strings.CutPrefix(path, dir)
+	if !found {
+		return path, nil
+	}
+
+	return s, nil
+}
+
+type exclusions struct {
+	dirs []string
+	exts []string
+}
+
+func isExcluded(path string, e exclusions) bool {
+	path = filepath.Clean(path)
+	ext := filepath.Ext(path)
+
+	// Check if any part of the path contains excluded directory
+	parts := strings.Split(path, string(filepath.Separator))
+	for _, part := range parts {
+		if slices.Contains(e.dirs, part) {
+			return true
+		}
+	}
+
+	return slices.Contains(e.exts, ext)
+}
+
+// Checks if err is not nil.
+// When err is not nil, logs it with a message.
+func checkErr(logger *slog.Logger, msg string, err error) {
+	if err != nil {
+		logger.Error(msg, "err", err)
+		logger.Info("Program exit.")
+		os.Exit(1)
+	}
+}
+
+func init() {
+	rootCmd.AddCommand(dirCmd)
+
+	// Exclusions
+	dirCmd.Flags().String("path", ".", "Directory path")
+	dirCmd.Flags().String("out", ".", "Output directory")
+	dirCmd.MarkFlagRequired("path")
+	dirCmd.MarkFlagRequired("out")
+
+	dirCmd.Flags().StringArray("exclude", defaultExcludedFiles(), "Exclude files")
+	dirCmd.Flags().StringArray("exclude-ext", defaultExcludedExtensions(), "Exclude files by extensions")
+}
+
+func defaultExcludedFiles() []string {
+	return []string{
+		".git",
+		".gitignore",
+	}
+}
+
+func defaultExcludedExtensions() []string {
+	return []string{
+		".sum", // go.sum file
+		".md",  // README files
+		".mod",
+	}
+}
+
+##### /home/kndrad/Projects/mergo/cmd/root.go ######
+
+/*
+Copyright © 2024 Konrad Nowara
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+*/
+package cmd
+
+import (
+	"fmt"
+	"log/slog"
+	"os"
+	"path/filepath"
+	"time"
+
+	"github.com/kndrad/mergo/internal/mergef"
+	"github.com/spf13/cobra"
+)
+
+func DefaultLogger() *slog.Logger {
+	l := slog.New(slog.NewTextHandler(os.Stdout, nil))
+
+	return l
+}
+
+var rootCmd = &cobra.Command{
+	Use:   "mergo",
+	Short: "Write Go module each Go package file to txt file",
+	Long: `Mergo is a command-line tool that merges multiple Go files within a package into a single file.
+
+It processes all non-test Go files in the specified input directory, combining them into a single file per package.
+Command preserves package structure, merges import statements, and maintains all declarations and functions.
+
+Usage:
+  mergo -p /path/to/gomodule/directory -o /path/to/output/directory
+
+Or you can also use it without any flags and it will process current module and output in this module with:
+  mergo
+
+
+This will process all Go packages and it's files in a directory and write to an output.`,
+	Args: cobra.MinimumNArgs(2),
+	RunE: func(cmd *cobra.Command, args []string) error {
+		modulePath := filepath.Clean(args[0])
+		logger := DefaultLogger()
+
+		if ok, err := mergef.IsGoMod(modulePath); !ok || err != nil {
+			logger.Error("Failed to check if path is a Go module", "path", modulePath, "err", err)
+
+			return fmt.Errorf("is module: %w", err)
+		}
+
+		files, err := mergef.WalkGoModule(modulePath)
+		if err != nil {
+			logger.Error("Failed to walk module", "err", err)
+
+			return fmt.Errorf("walk module: %w", err)
+		}
+
+		// Open txt file
+		timestamp := time.Now().Format("200601021504")
+		outPath := filepath.Join(args[1], fmt.Sprintf("llm%s.txt", timestamp))
+		txtf, err := os.OpenFile(outPath, os.O_APPEND|os.O_CREATE|os.O_RDWR, 0o600)
+		if err != nil {
+			logger.Error("Failed to open txt file", "path", outPath, "err", err)
+
+			return fmt.Errorf("open file: %w", err)
+		}
+		defer txtf.Close()
+
+		// Clear and reset to beginning
+		if err := txtf.Truncate(0); err != nil {
+			logger.Error("Failed to truncrate", "err", err)
+
+			return fmt.Errorf("truncate: %w", err)
+		}
+		if _, err := txtf.Seek(0, 0); err != nil {
+			logger.Error("Failed to seek 0 0", "err", err)
+
+			return fmt.Errorf("seek: %w", err)
+		}
+
+		// Write each merged Go file content
+		if err := mergef.WritePackages(files, txtf); err != nil {
+			logger.Error("Failed to merge Go files:", "err", err)
+
+			return fmt.Errorf("merge go files: %w", err)
+		}
+
+		return nil
+	},
+}
+
+func Execute() {
+	err := rootCmd.Execute()
+	if err != nil {
+		os.Exit(1)
+	}
+}
+
+func init() {
+	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	rootCmd.Flags().StringP("module", "m", ".", "Go module path")
+	rootCmd.Flags().StringP("out", "o", ".", "Output directory")
+	rootCmd.MarkFlagsRequiredTogether("module", "out")
+}
+
+##### /home/kndrad/Projects/mergo/internal/mergef/mergef.go ######
+
+package mergef
+
+import (
+	"errors"
+	"fmt"
+	"go/ast"
+	"go/format"
+	"go/parser"
+	"go/token"
+	"io"
+	"io/fs"
+	"maps"
+	"os"
+	"path/filepath"
+	"strings"
+)
+
+// ErrNoPackagesFound is returned when no Go files are found in the specified directory.
+var ErrNoPackagesFound = errors.New("no go package files found")
+
+// WritePackages processes all Go packages found in the Go module directory and writes merged content.
+func WritePackages(files map[string]*ast.File, w io.Writer) error {
+	fset := token.NewFileSet()
+
+	var b strings.Builder
+
+	for name, file := range files {
+		b.WriteString("##################" + "\n")
+		b.WriteString("##  PACKAGE" + " " + name + " ##" + "\n")
+		b.WriteString("##################" + "\n\n")
+		b.WriteString(fmt.Sprintf("package %s\n\nimport (\n", name))
+		for _, spec := range file.Imports {
+			b.WriteString("\t")
+			if err := format.Node(&b, fset, spec); err != nil {
+				return fmt.Errorf("mergo: %w", err)
+			}
+			b.WriteString("\n")
+		}
+		b.WriteString(")\n\n")
+
+		for _, d := range file.Decls {
+			if ast.FilterDecl(d, func(s string) bool {
+				return s != token.IMPORT.String()
+			}) {
+				b.WriteString("\n")
+				if err := format.Node(&b, fset, d); err != nil {
+					return fmt.Errorf("mergo: %w", err)
+				}
+			}
+			b.WriteString("\n\n")
+		}
+		if _, err := w.Write([]byte(b.String())); err != nil {
+			return fmt.Errorf("mergo: %w", err)
+		}
+		b.Reset()
+	}
+
+	return nil
+}
+
+// WalkGoModule traverses a Go module directory and returns a map of package names to their merged AST representations.
+// It skips test files and go.mod files during processing, combining multiple files of the same package into a single AST.
+func WalkGoModule(path string) (map[string]*ast.File, error) {
+	// Walk the file tree.
+	root := filepath.Clean(path)
+	fmt.Println(root)
+
+	fset := token.NewFileSet()
+	files := make(map[string]*ast.File)
+
+	var (
+		// Does not include test files.
+		filter = func(fi fs.FileInfo) bool {
+			filename := fi.Name()
+			isTestFile := !strings.HasSuffix(filename, "_test.go")
+			isModFile := !strings.HasPrefix(filename, "go.mod")
+
+			return isTestFile || isModFile
+		}
+		// Adds map of package name -> package AST to the objects slice
+		walk = func(path string, info fs.FileInfo, err error) error {
+			if err != nil {
+				fmt.Printf("prevent panic by handling failure accessing a path %q: %v\n", path, err)
+
+				return err
+			}
+
+			dir := filepath.Dir(path)
+
+			pkgs, err := parser.ParseDir(fset, dir, filter, 0)
+			if err != nil {
+				return fmt.Errorf("parse dir %w", err)
+			}
+			for pkg := range maps.Values(pkgs) {
+				files[pkg.Name] = ast.MergePackageFiles(pkg, ast.FilterImportDuplicates|ast.FilterUnassociatedComments)
+			}
+
+			return nil
+		}
+	)
+
+	err := filepath.Walk(root, walk)
+	if err != nil {
+		return nil, fmt.Errorf("filepath walk: %w", err)
+	}
+
+	return files, nil
+}
+
+var ErrInvalidModule = errors.New("invalid Go Module")
+
+func IsGoMod(path string) (bool, error) {
+	stat, err := os.Stat(filepath.Dir(path))
+	if err != nil && errors.Is(err, os.ErrNotExist) {
+		return false, ErrInvalidModule
+	}
+	if !stat.IsDir() {
+		return false, ErrInvalidModule
+	}
+
+	name := filepath.Join(filepath.Clean(path), "go.mod")
+	f, err := os.OpenFile(name, os.O_RDONLY, 0o666)
+	if err != nil && errors.Is(err, os.ErrNotExist) {
+		return false, fmt.Errorf("module does not exist: %w", err)
+	}
+	defer f.Close()
+
+	return true, nil
+}
+
+##### /home/kndrad/Projects/mergo/internal/mergef/mergef_test.go ######
+
+package mergef_test
+
+import (
+	"fmt"
+	"os"
+	"path/filepath"
+	"strings"
+	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
+	"github.com/kndrad/mergo/internal/mergef"
+)
+
+const (
+	TestDataDir = "testdata"
+	TestTmpFile = "tmpfile"
+	TestTmpDir  = "tmp"
+	GoVersion   = "1.23.2"
+)
+
+func TestWalkModule(t *testing.T) {
+	t.Parallel()
+
+	wd, err := os.Getwd()
+	require.NoError(t, err)
+
+	t.Logf("wd: %s", wd)
+	tmpDirPath := filepath.Join(wd, TestDataDir)
+	if !IsValidTestSubPath(t, tmpDirPath) {
+		t.Error("not a valid test subpath", tmpDirPath)
+	}
+	t.Logf("tempDirPath %s", tmpDirPath)
+
+	tmpDir, err := os.MkdirTemp(tmpDirPath, TestTmpDir)
+	require.NoError(t, err)
+	defer os.RemoveAll(tmpDir)
+	t.Logf("tempDir %#v", tmpDir)
+
+	tmpModFile, err := os.CreateTemp(tmpDir, "go.mod")
+	require.NoError(t, err)
+	defer os.Remove(tmpModFile.Name())
+	t.Logf("created tmpModFile: %#v", tmpModFile.Name())
+
+	require.NoError(t, err)
+	topDecl := "module github.com/kndrad/tmpmod\n\n" + "go " + GoVersion + "\n\n"
+	if _, err := tmpModFile.WriteString(topDecl); err != nil {
+		t.Logf("top go.mod declaration err: %v", err)
+		t.FailNow()
+	}
+	t.Logf("wrote go.mod declaration")
+
+	filesTotal := 4
+	tmpFilenames := make([]string, 0, filesTotal)
+	for range filesTotal {
+		tmpFile, err := os.CreateTemp(tmpDir, TestTmpFile+"*.go")
+		require.NoError(t, err)
+		tmpFilenames = append(tmpFilenames, tmpFile.Name())
+		defer os.Remove(tmpFile.Name())
+		t.Logf("created tmpFile: %#v", tmpFile.Name())
+	}
+
+	tmpPkgFilesTotal := filesTotal - 1
+	tmpPkgName := "mergetmp"
+	for _, tmpFilename := range tmpFilenames[:tmpPkgFilesTotal] {
+		tmpFile, err := os.OpenFile(tmpFilename, os.O_WRONLY, os.ModePerm)
+		defer func() {
+			if err := tmpFile.Close(); err != nil {
+				t.Logf("err closing tmpFile: %v", err)
+				t.FailNow()
+			}
+		}()
+		t.Logf("opened file: %s", tmpFile.Name())
+		require.NoError(t, err)
+
+		topDecl := "package " + tmpPkgName
+		if _, err := tmpFile.WriteString(topDecl); err != nil {
+			t.Logf("err: %v", err)
+			t.FailNow()
+		}
+		t.Logf("wrote top declaration: %s", topDecl)
+	}
+
+	tmpPkgDirPath := filepath.Join(tmpDir, tmpPkgName)
+	if err := os.Mkdir(tmpPkgDirPath, 0o777); err != nil {
+		t.FailNow()
+		t.Logf("err: %v", err)
+	}
+	t.Logf("created tmpPkg dir at: %v", tmpPkgDirPath)
+
+	for i, tmpFilename := range tmpFilenames[:tmpPkgFilesTotal] {
+		if file, err := os.OpenFile(tmpFilename, os.O_RDONLY, 0o666); err == nil {
+			t.Logf("closing file: %s", tmpFilename)
+			if err := file.Close(); err != nil {
+				t.FailNow()
+				t.Logf("err: %v", err)
+			}
+		}
+		tmpPkgFilename := filepath.Join(tmpPkgDirPath, filepath.Base(tmpFilename))
+		if err := os.Rename(tmpFilename, tmpPkgFilename); err != nil {
+			t.Logf("err: %v", err)
+			t.FailNow()
+		}
+
+		tmpFilenames[i] = tmpPkgFilename
+
+		t.Logf("moved file from %s to %s", tmpFilename, tmpPkgFilename)
+	}
+
+	tmpMainPkgName := "main"
+	for _, tmpFilename := range tmpFilenames[tmpPkgFilesTotal:] {
+		tmpFile, err := os.OpenFile(tmpFilename, os.O_WRONLY, os.ModeAppend)
+		t.Logf("opened file: %s", tmpFile.Name())
+		require.NoError(t, err)
+		if _, err := tmpFile.WriteString("package " + tmpMainPkgName); err != nil {
+			t.Logf("err: %v", err)
+			t.FailNow()
+		}
+		t.Logf("wrote top declaration: %v", topDecl)
+	}
+
+	path := tmpDir
+	files, err := mergef.WalkGoModule(path)
+
+	fmt.Printf("files: %#v\n", files)
+	require.NoError(t, err)
+	require.NotEmpty(t, files)
+
+	// Total amount of merged files must equal 2
+	assert.Len(t, files, 2)
+}
+
+func TestIsGoMod(t *testing.T) {
+	t.Parallel()
+
+	wd, err := os.Getwd()
+	require.NoError(t, err)
+	t.Logf("wd: %s", wd)
+
+	tmpModDirPath := filepath.Join(wd, TestDataDir)
+	t.Logf("tempDirPath %s", tmpModDirPath)
+
+	// Create a temporary directiory for output files
+	tmpModFile, err := os.Create(filepath.Join(tmpModDirPath, "go.mod"))
+	require.NoError(t, err)
+	t.Logf("created %#v", tmpModFile.Name())
+
+	testcases := map[string]struct {
+		path     string
+		expected bool
+		mustErr  bool
+	}{
+		"valid_module_path": {
+			path:     filepath.Dir(tmpModFile.Name()),
+			expected: true,
+			mustErr:  false,
+		},
+	}
+	for name, tc := range testcases {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+			isMod, err := mergef.IsGoMod(tc.path)
+			if tc.mustErr {
+				require.Error(t, err)
+			}
+			require.NoError(t, err)
+
+			t.Logf("testing path: %s", tc.path)
+			require.Equal(t, tc.expected, isMod)
+		})
+	}
+
+	t.Cleanup(func() {
+		err := os.Remove(tmpModFile.Name())
+		if err != nil {
+			t.FailNow()
+			t.Logf("Test_IsModule err: %v", err)
+		}
+	})
+}
+
+func IsValidTestSubPath(t *testing.T, path string) bool {
+	t.Helper()
+
+	wd, err := os.Getwd()
+	require.NoError(t, err)
+
+	return IsSubPath(wd, path)
+}
+
+// IsSubPath checks if the filePath is a subpath of the base path.
+func IsSubPath(basePath, filePath string) bool {
+	rel, err := filepath.Rel(basePath, filePath)
+	if err != nil {
+		return false
+	}
+
+	return !strings.HasPrefix(rel, ".."+string(filepath.Separator))
+}
+
+##### /home/kndrad/Projects/mergo/main.go ######
+
+/*
+Copyright © 2024 Konrad Nowara
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+*/
+package main
+
+import "github.com/kndrad/mergo/cmd"
+
+func main() {
+	cmd.Execute()
+}
+
+##### /home/kndrad/Projects/mergo/scripts/check.sh ######
+
+#!/bin/bash
+
+
+gosec -tests ./...
+golangci-lint --config .golangci.yaml run ./...
+
+##### /home/kndrad/Projects/mergo/scripts/format.sh ######
+
+#!/bin/bash
+
+
+gofumpt -w ./..
+
