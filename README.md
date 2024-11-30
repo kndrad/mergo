@@ -1,55 +1,49 @@
 # mergo
 
-mergo is a command-line tool that merges multiple Go files found in a Go module for easy output. You can then copy-paste the output into your favorite LLM without unnecessary ctrl+c ctrl+v for each Go file.
+A CLI tool that combines Go files from a module or directory into a single file for easy sharing with LLMs.
 
-Created for learning purposes.
+## Features
 
-## Details
-
-- Combines all non-test Go files in a package
-- Preserves package structure and imports
-- Handles multiple packages in a directory
-- Removes duplicate imports
+- Merges Go files while preserving package structure
+- Excludes test files and unwanted directories/extensions
+- Supports multiple packages
+- Handles imports deduplication
+- Outputs in a format suitable for LLM prompts
 
 ## Installation
 
-To install mergo, follow these steps:
+```bash
+go install github.com/kndrad/mergo@latest
+```
 
-1. Ensure you have Go 1.23.2 or later installed on your system.
-2. Clone the repository:
-   ```
-   git clone https://github.com/kndrad/mergo.git
-   ```
-3. Navigate to the project directory:
-   ```
-   cd mergo
-   ```
-4. Build the project:
-   ```
-   go build
-   ```
-5. (Optional) Add the built binary to your PATH for easy access.
+Or build from source:
+```bash
+git clone https://github.com/kndrad/mergo.git
+cd mergo
+go build
+```
 
 ## Usage
 
+Merge Go module files:
 ```bash
-mergo -p /path/to/input/directory -o /path/to/output/directory
+mergo /path/to/module /path/to/output
 ```
 
-- `-p, --path`: Input directory containing Go packages (required)
-- `-o, --out`: Output directory for merged files (required)
-
-## Example
-
+Merge directory files:
 ```bash
-mergo -p ./myproject -o ./out
+mergo dir --path=/path/to/dir --out=/path/to/output
 ```
 
-This command will process all Go packages in `./myproject` and create a merged `llm_input.txt` file in the `./out` directory.
+### Options
 
-## Version
-go version go1.23.2
+- `--exclude`: Exclude directories (default: .git, .gitignore)
+- `--exclude-ext`: Exclude file extensions (default: .sum, .md, .mod)
+
+## Requirements
+
+- Go 1.23.3 or later
 
 ## License
 
-MIT License - see the [LICENSE](LICENSE) file for details.
+MIT License - see [LICENSE](LICENSE)
