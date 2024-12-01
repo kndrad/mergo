@@ -364,5 +364,8 @@ func defaultExcludedExtensions() []string {
 		".pyc",   // Python compiled
 		".pyo",   // Python optimized
 		".class", // Java compiled
+
+		// Coverage files
+		".out",
 	}
 }
