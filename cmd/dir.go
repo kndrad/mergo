@@ -314,8 +314,55 @@ func defaultExcludedFiles() []string {
 
 func defaultExcludedExtensions() []string {
 	return []string{
+		// Go-specific
 		".sum", // go.sum file
-		".md",  // README files
-		".mod",
+		".mod", // go.mod file
+
+		// Documentation
+		".md",  // Markdown
+		".pdf", // PDF documents
+
+		// Images
+		".png",  // PNG images
+		".jpg",  // JPEG images
+		".jpeg", // JPEG images
+		".gif",  // GIF images
+		".svg",  // SVG images
+		".ico",  // Icon files
+		".webp", // WebP images
+		".bmp",  // Bitmap images
+
+		// Binary/Executable
+		".exe",   // Windows executable
+		".dll",   // Dynamic Link Library
+		".so",    // Shared Object
+		".dylib", // Dynamic Library (macOS)
+		".bin",   // Binary file
+
+		// Archives
+		".zip", // ZIP archive
+		".tar", // TAR archive
+		".gz",  // Gzip compression
+		".rar", // RAR archive
+		".7z",  // 7-Zip archive
+
+		// Media
+		".mp3", // Audio
+		".mp4", // Video
+		".wav", // Audio
+		".avi", // Video
+		".mov", // Video
+		".wmv", // Video
+		".flv", // Video
+
+		// Database
+		".db",       // Database file
+		".sqlite",   // SQLite database
+		".sqlitedb", // SQLite database
+
+		// Other binary formats
+		".pyc",   // Python compiled
+		".pyo",   // Python optimized
+		".class", // Java compiled
 	}
 }
