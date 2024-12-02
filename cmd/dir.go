@@ -309,6 +309,8 @@ func defaultExcludedFiles() []string {
 	return []string{
 		".git",
 		".gitignore",
+		"tmp", // tmp files
+		"coverage.out",
 	}
 }
 
@@ -366,6 +368,6 @@ func defaultExcludedExtensions() []string {
 		".class", // Java compiled
 
 		// Coverage files
-		".out",
+		".log",
 	}
 }

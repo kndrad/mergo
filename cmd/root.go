@@ -54,27 +54,35 @@ Or you can also use it without any flags and it will process current module and 
 
 
 This will process all Go packages and it's files in a directory and write to an output.`,
-	Args: cobra.MinimumNArgs(2),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		modulePath := filepath.Clean(args[0])
 		logger := DefaultLogger()
 
-		if ok, err := mergef.IsGoMod(modulePath); !ok || err != nil {
-			logger.Error("Failed to check if path is a Go module", "path", modulePath, "err", err)
+		// Get module path
+		mPath, err := cmd.Flags().GetString("path")
+		checkErr(logger, "Failed to get string flag value", err)
+		mPath = filepath.Clean(mPath)
+
+		if ok, err := mergef.IsGoMod(mPath); !ok || err != nil {
+			logger.Error("Failed to check if path is a Go module", "path", mPath, "err", err)
 
 			return fmt.Errorf("is module: %w", err)
 		}
 
-		files, err := mergef.WalkGoModule(modulePath)
+		files, err := mergef.WalkGoModule(mPath)
 		if err != nil {
 			logger.Error("Failed to walk module", "err", err)
 
 			return fmt.Errorf("walk module: %w", err)
 		}
 
+		// Get output path
+		outPath, err := cmd.Flags().GetString("out")
+		checkErr(logger, "Failed to get string flag value", err)
+		outPath = filepath.Clean(outPath)
+
 		// Open txt file
 		timestamp := time.Now().Format("200601021504")
-		outPath := filepath.Join(args[1], fmt.Sprintf("llm%s.txt", timestamp))
+		outPath = filepath.Join(outPath, fmt.Sprintf("llm%s.txt", timestamp))
 		txtf, err := os.OpenFile(outPath, os.O_APPEND|os.O_CREATE|os.O_RDWR, 0o600)
 		if err != nil {
 			logger.Error("Failed to open txt file", "path", outPath, "err", err)
@@ -115,7 +123,7 @@ func Execute() {
 
 func init() {
 	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-	rootCmd.Flags().StringP("module", "m", ".", "Go module path")
-	rootCmd.Flags().StringP("out", "o", ".", "Output directory")
-	rootCmd.MarkFlagsRequiredTogether("module", "out")
+	rootCmd.Flags().String("path", ".", "Go module path")
+	rootCmd.Flags().String("out", ".", "Output directory")
+	rootCmd.MarkFlagsRequiredTogether("path", "out")
 }
